@@ -1,0 +1,59 @@
+<h1>Workout </h1>
+
+<form>
+    <fieldset>
+        <legend>Edit Item</legend>
+        <p><label for="name">Name:
+            <input type="text" name="name" size="30" maxlength="100" id="name" value={{name}}>
+        </label></p>
+
+        <p><label for="reps">Reps:
+            <input type="number" name="reps" id="reps" value={{reps}}>
+        </label></p>
+
+        <p><label for="weight">Weight:
+            <input type="number" name="weight" id="weight" value={{weight}}>
+        </label></p>
+        
+        <p><label for="date">Date:
+            <input type="date" name="date" id="date" value={{date}}>
+        </label></p>
+
+
+        {{#if lbs}}
+        <p>Units:</p>
+        <p style="text-indent:40px">
+            <label>
+            <input type="radio" name ="lbs" value="1" id="true" checked=true>lbs
+            </label>
+
+            
+        <p style="text-indent:40px">
+            <label>
+            <input type="radio" name ="lbs" value="0" id="false">kgs
+            </label>
+        </p>
+
+        {{else}}
+
+        <p>Units:</p>
+        <p style="text-indent:40px">
+            <label>
+            <input type="radio" name ="lbs" value="1" id="true">lbs
+            </label>
+
+            
+        <p style="text-indent:40px">
+            <label>
+            <input type="radio" name ="lbs" value="0" id="false" checked="true">kgs
+            </label>
+        </p>
+        {{/if}}
+        
+        <input type="hidden" value={{id}} id="id">
+
+        <p>
+        <input type="submit" id="submitted">
+        </p>
+
+<script src="/clientEdit.js"> </script>
