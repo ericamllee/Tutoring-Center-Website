@@ -2,21 +2,66 @@
 // CS 290
 // Final Project
 // Front-end page for the home page.
+var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["tid", "type", "day", "time", "capacity"]};
 
-document.addEventListener('DOMContentLoaded', completePage);
-var headings = {"classes":["teacher", "type", "day", "time", "capacity", "size"], "teachers": ["fname", "lname"], "students": ["fname", "lname", "grade"]}
-
-/**
- * This function sends a request to the backend to get the information to make the table.
- */
-function completePage() {
+function sendPost(event) {
+    event.preventDefault();
+    console.log("in send post");
     var req = new XMLHttpRequest();
     req.open('POST', '/', true);
-    //responseListener(req);
     req.setRequestHeader('Content-Type', 'application/json');
-    req.send(JSON.stringify({makeTable: "true"}));
+    var dbtype = document.querySelector('input[name = "db"]:checked').value;
+    req.addEventListener('load', function () {
+        if (req.status >= 200 && req.status < 400) {
+            console.log("got a response");
+            var response = JSON.parse(req.responseText);
+            makeTable(dbtype, response);
+        } else {
+            console.log("Error in network request: " + req.statusText);
+        }
+    });
+    console.log(dbtype);
+    var toSend = {makeTable: "true", dbtype: dbtype};
+    req.send(JSON.stringify(toSend));
 }
 
+
+document.getElementById("submitted").addEventListener('click', sendPost);
+
+
+
+function makeTable(tableName, response) {
+    console.log("in makeTable");
+    // var oldTable = document.getElementById("table");
+    // if (oldTable) {
+    //     var parent = table.parentNode;
+    //     parent.removeChild(table);
+    // }
+
+    //make the table
+    var table = document.createElement("table");
+    table.id = "table";
+    table.style.border = "1px solid";
+
+    //make the header row.
+    var headerRow = table.appendChild(document.createElement("tr"));
+    var currentHeadings = headings[tableName];
+    for (var i = 0; i < currentHeadings.length; i++) {
+        makeItem("th", headerRow, currentHeadings[i], currentHeadings[i]);
+    }
+
+    //make each row.
+    response.forEach(function(object) {
+        var newRow = document.createElement("tr");
+        currentHeadings.forEach( function(column) {
+            makeItem("td", newRow, object.id + object[column], object[column]);
+        })
+
+       // makeForm(lastCol, object.id);
+        table.appendChild(newRow);
+    });
+    document.body.appendChild(table);
+}
 
 // /**
 //  * This function handles adding an item to the database. It sends the backend the form information once it's submitted.
@@ -51,26 +96,6 @@ function completePage() {
 //     return false;
 // }
 
-
-// /**
-//  * This is the response listener. It listens for a response from the backend, and when it receives it, it calls makeTable.
-//  *
-//  * @param item
-//  */
-// function responseListener(item) {
-//     item.addEventListener('load', function() {
-//         if (item.status >= 200 && item.status < 400) {
-//             // var response = JSON.parse(item.responseText);
-//             // makeTable(response.classes, "classes");
-//             // makeTable(response.teachers, "teachers");
-//             // makeTable(response.students, "students");
-//             // makeTable(response.student_class, "sc");
-//             console.log("got a response");
-//         } else {
-//             console.log("Error in network request: " + item.statusText);
-//         };
-//     });
-// }
 
 
 // /**
@@ -132,28 +157,28 @@ function completePage() {
 // }
 //
 //
-// /**
-//  * This function adds new items to the DOM. It takes in an element, gives it an id and adds any words to the item,
-//  * then attaches it to the parent.
-//  *
-//  * @param type
-//  * @param parent
-//  * @param id
-//  * @param words
-//  * @returns {Element}
-//  */
-// function makeItem(type, parent,  id, words) {
-//     var item = document.createElement(type);
-//     if (id) {
-//         item.id = id;
-//     }
-//     if (words) {
-//         item.append(words);
-//     }
-//     item.style.border = "1px solid";
-//     parent.appendChild(item);
-//     return item;
-// }
+/**
+ * This function adds new items to the DOM. It takes in an element, gives it an id and adds any words to the item,
+ * then attaches it to the parent.
+ *
+ * @param type
+ * @param parent
+ * @param id
+ * @param words
+ * @returns {Element}
+ */
+function makeItem(type, parent,  id, words) {
+    var item = document.createElement(type);
+    if (id) {
+        item.id = id;
+    }
+    if (words) {
+        item.append(words);
+    }
+    item.style.border = "1px solid";
+    parent.appendChild(item);
+    return item;
+}
 
 
 // /***

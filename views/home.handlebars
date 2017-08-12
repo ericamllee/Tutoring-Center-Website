@@ -1,10 +1,33 @@
-<h1 id="classes">Classes</h1>
+<h1 id="title">Tutoring Center</h1>
 
-<h1 id="teachers">Teachers</h1>
+<form id="form">
+    <fieldset>
+        <legend>Get Table</legend>
 
-<h1 id="students">Students</h1>
+            <p>Database:</p>
+            <p style="text-indent:40px">
+                <label>
+                    <input type="radio" name="db" value="classes" id="classes" checked>Classes
+                </label>
 
-<h1 id="cs">Classes and Students</h1>
 
+            <p style="text-indent:40px">
+                <label>
+                    <input type="radio" name = "db" value="teachers" id="teachers">Teachers
+                </label>
+            </p>
+
+            <p style="text-indent:40px">
+                <label>
+                    <input type="radio" name= "db" value="students" id="students">Students
+                </label>
+            </p>
+
+
+            <p>
+                <input type="submit" id="submitted">
+            </p>
+    </fieldset>
+</form>
 
 <script src="/clientHome.js"> </script>

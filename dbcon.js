@@ -1,13 +1,11 @@
 var mysql = require('mysql');
-// var connection = mysql.createConnection({multipleStatements:true});
 var pool = mysql.createPool({
     connectionLimit : 10,
-    host            : 'oniddb.cws.oregonstate.edu',
-    user            : 'leeerica-db',
-    password        : 'S53u3gpAs4KKLKhG',
-    database        : 'leeerica-db',
+    host            : 'classmysql.engr.oregonstate.edu',
+    user            : 'cs340_leeerica',
+    password        : 'CtTAL7jXHCDe',
+    database        : 'cs340_leeerica',
     // dateStrings     : true
 });
 
 module.exports.pool = pool;
-// module.exports.connection = connection;

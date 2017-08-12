@@ -18,32 +18,29 @@ app.use(bodyParser.json());
 
 //render the home page upon first arriving to the page.
 app.get('/', function(req, res, next) {
+    console.log("got a get request");
     res.render('home');
 });
 
 
 //handle the different types of post requests sent to the home page.
 app.post('/',function(req,res,next){
-    if (req.body.delete) {
-        deleteRow(req.body.id, next, res);
-    } else if (req.body.makeTable) {
-        getTable(res, next);
-    } else {
-        addRow(req.body, next, res);
-    }
+    console.log('got a post')
+    getTable(req.body.dbtype, res, next);
 });
 
 
 //This function sends the results of the full table to the client page.
-function getTable(res, next) {
-    mysql.pool.query('SELECT * FROM classes', function(err, rows, fields){
+function getTable(tableName, res, next) {
+    console.log(tableName);
+    mysql.pool.query('SELECT * FROM ??', [tableName], function(err, rows, fields){
     if(err){
          next(err);
          return;
     }
     results = JSON.stringify(rows);
     console.log(results);
-//    res.send(results);
+    res.send(results);
     });
 }
 
