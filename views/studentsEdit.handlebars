@@ -1,9 +1,9 @@
-<h1>Teachers</h1>
+<h1>Students</h1>
 
 
 <form method="post">
     <fieldset>
-        <legend>Edit Teacher</legend>
+        <legend>Edit Student</legend>
         <p><label for="fname">First Name:
             <input type="text" name="fname" size="30" maxlength="100" id="fname" value={{fname}}>
         </label></p>
@@ -12,10 +12,15 @@
             <input type="text" name="lname" size="30" maxlength="100" id="lname" value={{lname}}>
         </label></p>
 
+        <p><label for="Grade">Grade:
+            <input type="number" name="grade" id="grade" value={{grade}}>
+        </label></p>
+
+
         <input type="hidden" value={{id}} id="id">
 
         <p>
             <input type="submit" id="submitted">
         </p>
 
-<script src="/clientTeachersEdit.js"> </script>
+<script src="/clientStudentsEdit.js"> </script>

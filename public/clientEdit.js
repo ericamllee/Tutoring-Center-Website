@@ -1,9 +1,4 @@
-// // Erica Lee
-// // CS 290
-// // Final Project
-// // Front-end page for editing.
-//
-//
+
 // document.addEventListener('DOMContentLoaded', sendEdit);
 // var headings = ["name", "reps", "weight", "date", "lbs"];
 //

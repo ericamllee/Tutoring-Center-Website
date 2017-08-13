@@ -32,11 +32,11 @@ document.getElementById("submitted").addEventListener('click', sendPost);
 
 function makeTable(tableName, response) {
     console.log("in makeTable");
-    // var oldTable = document.getElementById("table");
-    // if (oldTable) {
-    //     var parent = table.parentNode;
-    //     parent.removeChild(table);
-    // }
+    var oldTable = document.getElementById("table");
+    if (oldTable) {
+        var parent = oldTable.parentNode;
+        parent.removeChild(oldTable);
+    }
 
     //make the table
     var table = document.createElement("table");
@@ -49,6 +49,7 @@ function makeTable(tableName, response) {
     for (var i = 0; i < currentHeadings.length; i++) {
         makeItem("th", headerRow, currentHeadings[i], currentHeadings[i]);
     }
+    makeItem("th", headerRow, "change", "edit row");
 
     //make each row.
     response.forEach(function(object) {
@@ -57,7 +58,8 @@ function makeTable(tableName, response) {
             makeItem("td", newRow, object.id + object[column], object[column]);
         })
 
-       // makeForm(lastCol, object.id);
+        var lastCol =  makeItem("td", newRow);
+        makeForm(lastCol, object.id, tableName);
         table.appendChild(newRow);
     });
     document.body.appendChild(table);
@@ -80,21 +82,6 @@ function makeTable(tableName, response) {
 //         req.setRequestHeader('Content-Type', 'application/json');
 //         req.send(formToJSONString());
 //    })}
-//
-//
-// /***
-//  * This function returns true if there is an error in the form submission. Otherwise, it returns false.
-//  * @returns {boolean}
-//  */
-// function errorHandler() {
-//     //There are errors if there is no name, or if the numerical values are negative.
-//     if (document.getElementById("name").value === "" ||
-//         document.getElementById("weight").value < 0 ||
-//         document.getElementById("reps").value < 0) {
-//         return true;
-//     }
-//     return false;
-// }
 
 
 
@@ -116,47 +103,6 @@ function makeTable(tableName, response) {
 // }
 
 
-/***
- * This function makes a table after being sent the table information from the backend.
- * @param response
- */
-// function makeTable(response, tableName) {
-//     //delete the old table and header.
-//     var oldTable = document.getElementsByClassName("table");
-//     if (oldTable) {
-//         oldTable.forEach(function(table) {
-//             var parent = table.parentNode;
-//             parent.removeChild(table);
-//         })
-//
-//     }
-//
-//     //make the table
-//     var table = document.createElement("table");
-//     var parent = document.getElementById(tableName);
-//     table.id = "table";
-//     table.style.border = "1px solid";
-//
-//     //make the header row.
-//     var headerRow = table.appendChild(document.createElement("tr"));
-//     for (var i = 0; i < 4; i++) {
-//         makeItem("th", headerRow, headings[tableName][i], headings[i]);
-//     }
-//
-//     //make each row.
-//     response.forEach(function(object) {
-//         var newRow = document.createElement("tr");
-//         headings[tableName].forEach( function(column) {
-//             makeItem("td", newRow, object.id + object[column], object[column]);
-//         })
-//
-//        // makeForm(lastCol, object.id);
-//         table.appendChild(newRow);
-//     });
-//     parent.appendChild(table);
-// }
-//
-//
 /**
  * This function adds new items to the DOM. It takes in an element, gives it an id and adds any words to the item,
  * then attaches it to the parent.
@@ -181,79 +127,94 @@ function makeItem(type, parent,  id, words) {
 }
 
 
-// /***
-//  * This function makes a button with an event listener. It appends the button to the parent. Then it adds text
-//  * and attaches the id and a function to the new button.
-//  *
-//  * @param text
-//  * @param funcName
-//  * @param parent
-//  * @param id
-//  * @returns {Element}
-//  */
-// function makeButton(text, funcName, parent, id) {
-//     var button = document.createElement("BUTTON");
-//     var t = document.createTextNode(text);
-//     button.append(t);
-//     button.id = text;
-//     parent.appendChild(button);
-//     button.hiddenId = id;                           //is this necessary? or is makeHidden where the hidden id comes from?
-//     button.addEventListener("click", funcName);
-//     return button;
-// }
-//
+/***
+ * This function makes a button with an event listener. It appends the button to the parent. Then it adds text
+ * and attaches the id and a function to the new button.
+ *
+ * @param text
+ * @param funcName
+ * @param parent
+ * @param id
+ * @returns {Element}
+ */
+function makeButton(text, funcName, parent, id, dbname) {
+    var button = document.createElement("BUTTON");
+    var t = document.createTextNode(text);
+    button.append(t);
+    button.id = text;
+    parent.appendChild(button);
+    button.hiddenId = id;                           //is this necessary? or is makeHidden where the hidden id comes from?
+    button.name = dbname;
+    button.addEventListener("click", funcName);
+    return button;
+}
+
 
 // /**
 //  * This function adds the id to the form.
 //  * @param parent
 //  * @param id
 //  */
-// function makeHidden(parent, id) {
+// function makeHidden(parent, id, dbtype) {
 //     var hidden = document.createElement("input");
 //     hidden.type = "hidden";
 //     hidden.value = id;
+//     hidden.name = dbtype;
 //     parent.appendChild(hidden);
 // }
-//
-//
-// /***
-//  * This function is used to make the form containing the edit and delete buttons. It makes the buttons,
-//  * then appends the id as hidden input to the form.
-//  * @param parent
-//  * @param id
-//  */
-// function makeForm(parent, id) {
-//     var form = document.createElement("FORM");
-//     makeButton("Edit", editRow, form, id);
-//     makeButton("Delete", deleteRow, form, id);
-//     makeHidden(form, id);
-//     parent.appendChild(form);
-// }
-//
-//
-// /******
-//  * The function is called when the delete button is hit. It sends a post request to the home page,
-//  * indicating that a delete button has been hit, along with the id of the row.
-//  *
-//  * @param event
-//  */
-// function deleteRow(event) {
-//     event.preventDefault();
-//     var req = new XMLHttpRequest();
-//     req.open('POST', "/", true);
-//     req.setRequestHeader('Content-Type', 'application/json');
-//     var payload = {id: event.target.hiddenId, delete: "true"};
-//     responseListener(req);
-//     req.send(JSON.stringify(payload));
-// }
-//
-//
-// /***
-//  * This function is called when the edit button has been hit. It reroutes the website to the edit home page,
-//  * also sending the id of the element in the URL.
-//  * @param event
-//  */
-// function editRow(event) {
-//     event.preventDefault();
-//     window.location.href = "/edit?id=" + event.target.hiddenId;
-// }
+
+
+/***
+ * This function is used to make the form containing the edit and delete buttons. It makes the buttons,
+ * then appends the id as hidden input to the form.
+ * @param parent
+ * @param id
+ */
+function makeForm(parent, id, dbname) {
+    var form = document.createElement("FORM");
+    makeButton("Edit", editRow, form, id, dbname);
+    makeButton("Delete", deleteRow, form, id, dbname);
+    // makeHidden(form, id, dbname);
+    parent.appendChild(form);
+}
+
+
+/******
+ * The function is called when the delete button is hit. It sends a post request to the home page,
+ * indicating that a delete button has been hit, along with the id of the row.
+ *
+ * @param event
+ */
+function deleteRow(event) {
+    event.preventDefault();
+    console.log("in deleteRow");
+    var req = new XMLHttpRequest();
+    req.open('POST', "/", true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    var name = event.target.name;
+    var payload = {id: event.target.hiddenId, delete: "true", dbtype: name};
+    req.addEventListener('load', function () {
+        if (req.status >= 200 && req.status < 400) {
+            console.log("got a response");
+            var response = JSON.parse(req.responseText);
+            makeTable(name, response);
+        } else {
+            console.log("Error in network request: " + req.statusText);
+        }
+    });
+    req.send(JSON.stringify(payload));
+}
+
+
+/***
+ * This function is called when the edit button has been hit. It reroutes the website to the edit home page,
+ * also sending the id of the element in the URL.
+ * @param event
+ */
+function editRow(event) {
+    event.preventDefault();
+    console.log(event.target);
+    var dbname = event.target.name;
+    console.log("in edit row" + dbname);
+    window.location.href = "/" + dbname + "Edit?id=" + event.target.hiddenId;
+}

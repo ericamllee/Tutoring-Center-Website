@@ -26,7 +26,72 @@ app.get('/', function(req, res, next) {
 //handle the different types of post requests sent to the home page.
 app.post('/',function(req,res,next){
     console.log('got a post')
-    getTable(req.body.dbtype, res, next);
+    if (req.body.makeTable) {
+        getTable(req.body.dbtype, res, next);
+    } else if (req.body.delete) {
+        deleteRow(req.body, res, next);
+    }
+
+});
+
+//This function renders the Student edit page upon receiving an edit request.
+app.get('/studentsEdit', function(req, res, next) {
+    context = {};
+    mysql.pool.query('SELECT * FROM students WHERE id = ?', [req.query.id], function(err, rows, fields) {
+    if (err) {
+        console.log(err);
+        next(err);
+        return;
+    }
+    context = rows[0];
+    res.render('studentsEdit', context);
+    });
+});
+
+//This function handles the post request for the student edit page.
+app.post('/studentsEdit', function(req, res, next) {
+    console.log("in student edit");
+    var id = req.body.hidden;
+    delete req.body.hidden;
+    console.log(req.body);
+    console.log(id);
+    mysql.pool.query("UPDATE students SET ?  WHERE id=?", [req.body, id],
+    function(err, result) {
+        if(err){
+            next(err);
+        }
+        res.send(result);
+  });
+});
+
+//This function renders the teachers edit page upon receiving an edit request.
+app.get('/teachersEdit', function(req, res, next) {
+    context = {};
+    mysql.pool.query('SELECT * FROM teachers WHERE id = ?', [req.query.id], function(err, rows, fields) {
+        if (err) {
+            console.log(err);
+            next(err);
+            return;
+        }
+        context = rows[0];
+        res.render('teachersEdit', context);
+    });
+});
+
+//This function handles the post request for the edit page.
+app.post('/teachersEdit', function(req, res, next) {
+    console.log("in student edit");
+    var id = req.body.hidden;
+    delete req.body.hidden;
+    console.log(req.body);
+    console.log(id);
+    mysql.pool.query("UPDATE teachers SET ?  WHERE id=?", [req.body, id],
+        function(err, result) {
+            if(err){
+                next(err);
+            }
+            res.send(result);
+        });
 });
 
 
@@ -46,21 +111,29 @@ function getTable(tableName, res, next) {
 
 //
 // //this function handles the SQL response for deleting or adding rows.
-// function SQLResponse(err, results, next, res) {
+// function SQLResponse(err, results, next, res, name) {
 //     if (err) {
 //         next(err);
 //         return;
 //     }
-//     getTable(res, next);
+//     getTable(name, res, next);
 // }
-//
-// //This function handles deleting a row.
-// function deleteRow(id, next, res) {
-//     mysql.pool.query("DELETE FROM workout WHERE id = ?", [id], function(err, results) {
-//         SQLResponse(err, results, next, res);
-//     });
-// }
-//
+
+//This function handles deleting a row.
+function deleteRow(req, res, next) {
+    console.log('in delete row');
+    console.log(req);
+    mysql.pool.query("DELETE FROM ?? WHERE id = ?", [req.dbtype, req.id], function(err, results) {
+        if (err) {
+            next(err);
+            return;
+        }
+        getTable(req.dbtype, res, next);
+    });
+}
+
+
+
 //
 // //https://stackoverflow.com/questions/21779528/insert-into-fails-with-node-mysql
 // //used to figure out how to insert values stored in JSON into table.
