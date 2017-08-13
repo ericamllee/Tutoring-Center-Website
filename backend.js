@@ -18,14 +18,12 @@ app.use(bodyParser.json());
 
 //render the home page upon first arriving to the page.
 app.get('/', function(req, res, next) {
-    console.log("got a get request");
     res.render('home');
 });
 
 
 //handle the different types of post requests sent to the home page.
 app.post('/',function(req,res,next){
-    console.log('got a post')
     if (req.body.makeTable) {
         getTable(req.body.dbtype, res, next);
     } else if (req.body.delete) {
@@ -50,11 +48,8 @@ app.get('/studentsEdit', function(req, res, next) {
 
 //This function handles the post request for the student edit page.
 app.post('/studentsEdit', function(req, res, next) {
-    console.log("in student edit");
     var id = req.body.hidden;
     delete req.body.hidden;
-    console.log(req.body);
-    console.log(id);
     mysql.pool.query("UPDATE students SET ?  WHERE id=?", [req.body, id],
     function(err, result) {
         if(err){
@@ -95,11 +90,8 @@ app.get('/teachersEdit', function(req, res, next) {
 
 //This function handles the post request for the edit page.
 app.post('/teachersEdit', function(req, res, next) {
-    console.log("in teachers edit");
     var id = req.body.hidden;
     delete req.body.hidden;
-    console.log(req.body);
-    console.log(id);
     mysql.pool.query("UPDATE teachers SET ?  WHERE id=?", [req.body, id],
         function(err, result) {
             if(err){
@@ -116,7 +108,6 @@ app.get('/teachers', function(req, res, next) {
 
 //This function handles the post request for the edit page.
 app.post('/teachers', function(req, res, next) {
-    console.log("in teachers edit");
     mysql.pool.query("INSERT INTO teachers SET ?", [req.body],
         function(err, result) {
             if(err){
@@ -151,11 +142,8 @@ app.get('/classesEdit', function(req, res, next) {
 
 //This function handles the post request for the edit page.
 app.post('/classesEdit', function(req, res, next) {
-    console.log("in classes post");
     var id = req.body.hidden;
     delete req.body.hidden;
-    console.log(req.body);
-    console.log(id);
     mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
         function(err, result) {
             if(err){
@@ -182,7 +170,6 @@ app.get('/classes', function(req, res, next) {
 
 //This function handles the post request for the edit page.
 app.post('/classes', function(req, res, next) {
-    console.log("in classes post");
     mysql.pool.query("INSERT INTO classes SET ?", [req.body],
         function(err, result) {
             if(err){
@@ -202,7 +189,6 @@ function getTable(tableName, res, next) {
                 return;
             }
             results = JSON.stringify(rows);
-            console.log(results);
             res.send(results);
         });
     } else {
@@ -212,7 +198,6 @@ function getTable(tableName, res, next) {
              return;
         }
         results = JSON.stringify(rows);
-        console.log(results);
         res.send(results);
         });
     }
