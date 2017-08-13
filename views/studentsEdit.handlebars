@@ -12,9 +12,25 @@
             <input type="text" name="lname" size="30" maxlength="100" id="lname" value={{lname}}>
         </label></p>
 
-        <p><label for="Grade">Grade:
-            <input type="number" name="grade" id="grade" value={{grade}}>
-        </label></p>
+
+        <p>
+            <label>Grade</label>
+            <select name='grade' id='grade'>
+                <option value=4 id="4">4</option>
+                <option value=5 id="5">5</option>
+                <option value=6 id="6">6</option>
+                <option value=7 id="7">7</option>
+                <option value=8 id="8">8</option>
+                <option value=9 id="9">9</option>
+                <option value=10 id="10">10</option>
+                <option value=11 id="11">11</option>
+                <option value=12 id="12">12</option>
+            </select>
+        </p>
+
+        <script>
+            document.getElementById("{{grade}}").selected  = "selected";
+        </script>
 
 
         <input type="hidden" value={{id}} id="id">

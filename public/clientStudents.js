@@ -16,8 +16,7 @@ function sendEdit() {
         event.preventDefault();
         var req = new XMLHttpRequest();
         var payload;
-        var errors = errorHandler();
-        if (errors) {
+        if (document.getElementById("fname").value === "") {
             return;
         }
 
@@ -32,18 +31,6 @@ function sendEdit() {
     });
 }
 
-
-/**
- * This function returns true if there is an error in the form submission. Otherwise, it returns false.
- * @returns {boolean}
- */
-function errorHandler() {
-    //There are errors if there is no name, or if the numerical values are negative.
-    if (document.getElementById("fname").value === "") {
-        return true;
-    }
-    return false;
-}
 
 
 /**

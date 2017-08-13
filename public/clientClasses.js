@@ -16,29 +16,30 @@ function sendEdit() {
         var payload;
         var tid = document.getElementById("tid");
         var teacherID = tid.options[tid.selectedIndex].value;
-        console.log(teacherID);
 
         var day = document.getElementById("day");
         var dayName = day.options[day.selectedIndex].value;
-        console.log(dayName);
 
         var time = document.getElementById("time");
         var timeSet = time.options[time.selectedIndex].value;
-        console.log(timeSet);
 
         var type = document.getElementById("type");
         var classtype = type.options[type.selectedIndex].value;
-        console.log(classtype);
+
+        var capacity = document.getElementById("capacity").value
+
+        if (capacity < 0) {
+            return;
+        }
 
         payload = {
             tid : teacherID,
             day : dayName,
             time : timeSet,
             type : classtype,
-            capacity : document.getElementById("capacity").value || null
+            capacity : capacity || 0
         }
 
-        // console.log(payload);
         req.open('POST', "/classes", true);
         req.setRequestHeader('Content-Type', 'application/json');
         responseListener(req);

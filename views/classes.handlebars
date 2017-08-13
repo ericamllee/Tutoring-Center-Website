@@ -9,7 +9,7 @@
             <label>Teacher</label>
             <select name='tid' id='tid'>
                 {{#each teacherList}}
-                    <option value={{this.id}}>{{this.lname}}</option>
+                    <option value={{this.id}} id={{this.lname}}>{{this.lname}}</option>
                 {{/each}}
             </select>
         </p>
@@ -17,33 +17,33 @@
         <p>
             <label>Class</label>
             <select name='type' id='type'>
-                <option value='writing'>Writing</option>
-                <option value='reading'>Reading</option>
-                <option value='math'>Math</option>
-                <option value='history'>History</option>
-                <option value='science'>Science</option>
+                <option value='writing' id="Writing">Writing</option>
+                <option value='reading' id="Reading">Reading</option>
+                <option value='math' id="Math">Math</option>
+                <option value='history' id="History">History</option>
+                <option value='science' id="Science">Science</option>
             </select>
         </p>
 
         <p>
             <label>Day</label>
             <select name='day' id='day'>
-                <option value='Monday'>Monday</option>
-                <option value='Tuesday'>Tuesday</option>
-                <option value='Wednesday'>Wednesday</option>
-                <option value='Thursday'>Thursday</option>
-                <option value='Friday'>Friday</option>
+                <option value='Monday' id='Monday'>Monday</option>
+                <option value='Tuesday' id='Tuesday'>Tuesday</option>
+                <option value='Wednesday' id="Wednesday">Wednesday</option>
+                <option value='Thursday' id="Thursday">Thursday</option>
+                <option value='Friday' id="Friday">Friday</option>
             </select>
         </p>
 
         <p>
             <label>Time</label>
             <select name='time' id='time'>Time
-                <option value='3:30'>3:30</option>
-                <option value='4:35'>4:35</option>
-                <option value='5:45'>5:45</option>
-                <option value='6:50'>6:50</option>
-                <option value='8:00'>8:00</option>
+                <option value='3:30' id="3:30">3:30</option>
+                <option value='4:35' id="4:35">4:35</option>
+                <option value='5:45' id="5:45">5:45</option>
+                <option value='6:50' id="6:50">6:50</option>
+                <option value='8:00' id="8:00">8:00</option>
             </select>
         </p>
 
