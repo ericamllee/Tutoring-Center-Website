@@ -21,12 +21,18 @@ function sendEdit() {
         var req = new XMLHttpRequest();
         var payload;
         if (document.getElementById("lname").value === "") {
+            console.log("Last name cannot be null");
             return;
         }
 
         payload = {
             fname : document.getElementById("fname").value,
             lname : document.getElementById("lname").value};
+
+        var id = document.getElementById("id");
+        if (id) {
+            payload.hidden = id.value;
+        }
         req.open('POST', "/teachers", true);
         req.setRequestHeader('Content-Type', 'application/json');
         responseListener(req);

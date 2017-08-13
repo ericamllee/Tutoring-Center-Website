@@ -1,9 +1,9 @@
 <h1>Teachers</h1>
 
 
-<form method="post">
+<form method="post" id="form">
     <fieldset>
-        <legend>Add Teacher</legend>
+        <legend>{{type}} Teacher</legend>
         <p><label for="fname">First Name:
             <input type="text" name="fname" size="30" maxlength="100" id="fname">
         </label></p>
@@ -17,5 +17,27 @@
         </p>
     </fieldset>
 </form>
+
+<script>
+    if ("{{type}}" == "Edit") {
+        var fname = document.getElementById("fname");
+        var lname = document.getElementById("lname");
+
+
+        if (fname) {
+            fname.value = "{{row.fname}}";
+        }
+
+        if (lname) {
+            lname.value = "{{row.lname}}";
+        }
+
+        var hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.value = "{{row.id}}";
+        hiddenInput.id = "id";
+        document.getElementById("form").appendChild(hiddenInput);
+    }
+</script>
 
 <script src="/clientTeachers.js"> </script>
