@@ -122,52 +122,6 @@ app.post('/teachers', function(req, res, next) {
 
 
 
-
-
-
-// //This function renders the teachers edit page upon receiving an edit request.
-// app.get('/teachersEdit', function(req, res, next) {
-//     context = {};
-//     mysql.pool.query('SELECT * FROM teachers WHERE id = ?', [req.query.id], function(err, rows, fields) {
-//         if (err) {
-//             console.log(err);
-//             next(err);
-//             return;
-//         }
-//         context = rows[0];
-//         res.render('teachersEdit', context);
-//     });
-// });
-//
-// //This function handles the post request for the edit page.
-// app.post('/teachersEdit', function(req, res, next) {
-//     var id = req.body.hidden;
-//     delete req.body.hidden;
-//     mysql.pool.query("UPDATE teachers SET ?  WHERE id=?", [req.body, id],
-//         function(err, result) {
-//             if(err){
-//                 next(err);
-//             }
-//             res.send(result);
-//         });
-// });
-//
-// //This function renders the teachers edit page upon receiving an edit request.
-// app.get('/teachers', function(req, res, next) {
-//     res.render('teachers');
-// });
-//
-// //This function handles the post request for the edit page.
-// app.post('/teachers', function(req, res, next) {
-//     mysql.pool.query("INSERT INTO teachers SET ?", [req.body],
-//         function(err, result) {
-//             if(err){
-//                 next(err);
-//             }
-//             res.send(result);
-//         });
-// });
-
 //This function renders the teachers edit page upon receiving an edit request.
 app.get('/classesEdit', function(req, res, next) {
     context = {id : req.query.id};
