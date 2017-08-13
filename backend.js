@@ -80,7 +80,7 @@ app.get('/teachersEdit', function(req, res, next) {
 
 //This function handles the post request for the edit page.
 app.post('/teachersEdit', function(req, res, next) {
-    console.log("in student edit");
+    console.log("in teachers edit");
     var id = req.body.hidden;
     delete req.body.hidden;
     console.log(req.body);
@@ -94,19 +94,69 @@ app.post('/teachersEdit', function(req, res, next) {
         });
 });
 
+//This function renders the teachers edit page upon receiving an edit request.
+app.get('/classesEdit', function(req, res, next) {
+    context = {id : req.query.id};
+    mysql.pool.query('SELECT * FROM classes WHERE id = ?', [req.query.id], function(err, rows, fields) {
+        if (err) {
+            console.log(err);
+            next(err);
+            return;
+        }
+        context.row = rows[0];
+        mysql.pool.query('SELECT * FROM teachers', function(err, rows, fields) {
+            if (err) {
+                console.log(err);
+                next(err);
+                return;
+            } else {
+                context.teacherList = rows;
+                res.render('classesEdit', context);
+            }
+        });
+    });
+});
+
+//This function handles the post request for the edit page.
+app.post('/classesEdit', function(req, res, next) {
+    console.log("in classes post");
+    var id = req.body.hidden;
+    delete req.body.hidden;
+    console.log(req.body);
+    console.log(id);
+    mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
+        function(err, result) {
+            if(err){
+                next(err);
+            }
+            res.send(result);
+        });
+});
+
 
 //This function sends the results of the full table to the client page.
 function getTable(tableName, res, next) {
-    console.log(tableName);
-    mysql.pool.query('SELECT * FROM ??', [tableName], function(err, rows, fields){
-    if(err){
-         next(err);
-         return;
+    if (tableName === "classes") {
+        mysql.pool.query('SELECT lname, c.id, type, day, time, capacity FROM classes c INNER JOIN teachers t ON t.id = c.tid', [tableName], function(err, rows, fields){
+            if(err){
+                next(err);
+                return;
+            }
+            results = JSON.stringify(rows);
+            console.log(results);
+            res.send(results);
+        });
+    } else {
+        mysql.pool.query('SELECT * FROM ??', [tableName], function(err, rows, fields){
+        if(err){
+             next(err);
+             return;
+        }
+        results = JSON.stringify(rows);
+        console.log(results);
+        res.send(results);
+        });
     }
-    results = JSON.stringify(rows);
-    console.log(results);
-    res.send(results);
-    });
 }
 
 //

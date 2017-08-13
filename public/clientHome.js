@@ -2,7 +2,7 @@
 // CS 290
 // Final Project
 // Front-end page for the home page.
-var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["tid", "type", "day", "time", "capacity"]};
+var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["lname", "type", "day", "time", "capacity"]};
 
 function sendPost(event) {
     event.preventDefault();
@@ -53,6 +53,7 @@ function makeTable(tableName, response) {
 
     //make each row.
     response.forEach(function(object) {
+        console.log(object);
         var newRow = document.createElement("tr");
         currentHeadings.forEach( function(column) {
             makeItem("td", newRow, object.id + object[column], object[column]);
