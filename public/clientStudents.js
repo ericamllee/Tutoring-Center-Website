@@ -1,4 +1,6 @@
-
+/**
+ * Created by ericalee on 8/12/17.
+ */
 /**
  * Created by ericalee on 8/12/17.
  */
@@ -14,38 +16,34 @@ function sendEdit() {
         event.preventDefault();
         var req = new XMLHttpRequest();
         var payload;
-        var tid = document.getElementById("tid");
-        var teacherID = tid.options[tid.selectedIndex].value;
-        console.log(teacherID);
-
-        var day = document.getElementById("day");
-        var dayName = day.options[day.selectedIndex].value;
-        console.log(dayName);
-
-        var time = document.getElementById("time");
-        var timeSet = time.options[time.selectedIndex].value;
-        console.log(timeSet);
-
-        var type = document.getElementById("type");
-        var classtype = type.options[type.selectedIndex].value;
-        console.log(classtype);
-
-        payload = {
-            tid : teacherID,
-            day : dayName,
-            time : timeSet,
-            type : classtype,
-            capacity : document.getElementById("capacity").value || null
+        var errors = errorHandler();
+        if (errors) {
+            return;
         }
 
-        // console.log(payload);
-        req.open('POST', "/classes", true);
+        payload = {
+            fname : document.getElementById("fname").value,
+            lname : document.getElementById("lname").value,
+            grade : document.getElementById("grade").value};
+        req.open('POST', "/students", true);
         req.setRequestHeader('Content-Type', 'application/json');
         responseListener(req);
         req.send(JSON.stringify(payload));
     });
 }
 
+
+/**
+ * This function returns true if there is an error in the form submission. Otherwise, it returns false.
+ * @returns {boolean}
+ */
+function errorHandler() {
+    //There are errors if there is no name, or if the numerical values are negative.
+    if (document.getElementById("fname").value === "") {
+        return true;
+    }
+    return false;
+}
 
 
 /**

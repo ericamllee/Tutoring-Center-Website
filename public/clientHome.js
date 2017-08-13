@@ -16,6 +16,7 @@ function sendPost(event) {
             console.log("got a response");
             var response = JSON.parse(req.responseText);
             makeTable(dbtype, response);
+            makeButton("Add to " + dbtype, addRow, document.body, "add " + dbtype, dbtype);
         } else {
             console.log("Error in network request: " + req.statusText);
         }
@@ -218,4 +219,10 @@ function editRow(event) {
     var dbname = event.target.name;
     console.log("in edit row" + dbname);
     window.location.href = "/" + dbname + "Edit?id=" + event.target.hiddenId;
+}
+
+function addRow(event) {
+    event.preventDefault();
+    var dbname = event.target.name;
+    window.location.href = "/" + dbname;
 }

@@ -64,6 +64,21 @@ app.post('/studentsEdit', function(req, res, next) {
   });
 });
 
+app.get('/students', function(req, res, next) {
+    res.render('students', context);
+});
+
+//This function handles the post request for the student edit page.
+app.post('/students', function(req, res, next) {
+    mysql.pool.query("INSERT INTO students SET ?", [req.body],
+        function(err, result) {
+            if(err){
+                next(err);
+            }
+            res.send(result);
+        });
+});
+
 //This function renders the teachers edit page upon receiving an edit request.
 app.get('/teachersEdit', function(req, res, next) {
     context = {};
@@ -86,6 +101,23 @@ app.post('/teachersEdit', function(req, res, next) {
     console.log(req.body);
     console.log(id);
     mysql.pool.query("UPDATE teachers SET ?  WHERE id=?", [req.body, id],
+        function(err, result) {
+            if(err){
+                next(err);
+            }
+            res.send(result);
+        });
+});
+
+//This function renders the teachers edit page upon receiving an edit request.
+app.get('/teachers', function(req, res, next) {
+    res.render('teachers');
+});
+
+//This function handles the post request for the edit page.
+app.post('/teachers', function(req, res, next) {
+    console.log("in teachers edit");
+    mysql.pool.query("INSERT INTO teachers SET ?", [req.body],
         function(err, result) {
             if(err){
                 next(err);
@@ -125,6 +157,33 @@ app.post('/classesEdit', function(req, res, next) {
     console.log(req.body);
     console.log(id);
     mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
+        function(err, result) {
+            if(err){
+                next(err);
+            }
+            res.send(result);
+        });
+});
+
+//This function renders the teachers edit page upon receiving an edit request.
+app.get('/classes', function(req, res, next) {
+    context = {};
+    mysql.pool.query('SELECT * FROM teachers', function(err, rows, fields) {
+        if (err) {
+            console.log(err);
+            next(err);
+            return;
+        } else {
+            context.teacherList = rows;
+            res.render('classes', context);
+        }
+    });
+});
+
+//This function handles the post request for the edit page.
+app.post('/classes', function(req, res, next) {
+    console.log("in classes post");
+    mysql.pool.query("INSERT INTO classes SET ?", [req.body],
         function(err, result) {
             if(err){
                 next(err);
