@@ -81,7 +81,7 @@ app.get('/teachers', function(req, res, next) {
     var context = {type : "Add"};
     var id = req.query.id;
     if (id) {
-        mysql.pool.query('SELECT * FROM teachers WHERE id = ?', [req.query.id], function (err, rows, fields) {
+        mysql.pool.query('SELECT * FROM teachers WHERE id = ?', [id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 next(err);
@@ -123,44 +123,9 @@ app.post('/teachers', function(req, res, next) {
 
 
 //This function renders the teachers edit page upon receiving an edit request.
-app.get('/classesEdit', function(req, res, next) {
-    context = {id : req.query.id};
-    mysql.pool.query('SELECT * FROM classes WHERE id = ?', [req.query.id], function(err, rows, fields) {
-        if (err) {
-            console.log(err);
-            next(err);
-            return;
-        }
-        context.row = rows[0];
-        mysql.pool.query('SELECT * FROM teachers', function(err, rows, fields) {
-            if (err) {
-                console.log(err);
-                next(err);
-                return;
-            } else {
-                context.teacherList = rows;
-                res.render('classesEdit', context);
-            }
-        });
-    });
-});
-
-//This function handles the post request for the edit page.
-app.post('/classesEdit', function(req, res, next) {
-    var id = req.body.hidden;
-    delete req.body.hidden;
-    mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
-        function(err, result) {
-            if(err){
-                next(err);
-            }
-            res.send(result);
-        });
-});
-
-//This function renders the teachers edit page upon receiving an edit request.
 app.get('/classes', function(req, res, next) {
-    context = {};
+    var context = {type : "Add"};
+    var id = req.query.id;
     mysql.pool.query('SELECT * FROM teachers', function(err, rows, fields) {
         if (err) {
             console.log(err);
@@ -168,20 +133,59 @@ app.get('/classes', function(req, res, next) {
             return;
         } else {
             context.teacherList = rows;
-            res.render('classes', context);
+            if (id) {
+                mysql.pool.query('SELECT * FROM classes WHERE id = ?', [id], function(err, rows, fields) {
+                    if (err) {
+                        console.log(err);
+                        next(err);
+                        return;
+                    }
+                    context.row = rows[0];
+                    context.type = "Edit";
+                    res.render('classes', context);
+                    });
+            } else {
+                res.render('classes', context);
+            }
         }
     });
 });
 
+// //This function handles the post request for the edit page.
+// app.post('/classesEdit', function(req, res, next) {
+//     var id = req.body.hidden;
+//     delete req.body.hidden;
+//     mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
+//         function(err, result) {
+//             if(err){
+//                 next(err);
+//             }
+//             res.send(result);
+//         });
+// });
+
+
 //This function handles the post request for the edit page.
 app.post('/classes', function(req, res, next) {
-    mysql.pool.query("INSERT INTO classes SET ?", [req.body],
-        function(err, result) {
-            if(err){
-                next(err);
-            }
-            res.send(result);
-        });
+    var id = req.body.hidden;
+    if (id) {
+        delete req.body.hidden;
+        mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
+            function (err, result) {
+                if (err) {
+                    next(err);
+                }
+                res.send(result);
+            });
+    } else {
+        mysql.pool.query("INSERT INTO classes SET ?", [req.body],
+            function (err, result) {
+                if (err) {
+                    next(err);
+                }
+                res.send(result);
+            });
+    }
 });
 
 

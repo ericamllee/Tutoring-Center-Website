@@ -1,15 +1,15 @@
 <h1>Add Class</h1>
 
 
-<form method='post'>
+<form method='post' id="form">
     <fieldset>
-        <legend>Add Class</legend>
+        <legend>{{type}} Class</legend>
 
         <p>
             <label>Teacher</label>
             <select name='tid' id='tid'>
                 {{#each teacherList}}
-                    <option value={{this.id}} id={{this.lname}}>{{this.lname}}</option>
+                    <option value={{this.id}} id="{{this.id}}">{{this.lname}}</option>
                 {{/each}}
             </select>
         </p>
@@ -17,11 +17,11 @@
         <p>
             <label>Class</label>
             <select name='type' id='type'>
-                <option value='writing' id="Writing">Writing</option>
-                <option value='reading' id="Reading">Reading</option>
-                <option value='math' id="Math">Math</option>
-                <option value='history' id="History">History</option>
-                <option value='science' id="Science">Science</option>
+                <option value='writing' id="writing">Writing</option>
+                <option value='reading' id="reading">Reading</option>
+                <option value='math' id="math">Math</option>
+                <option value='history' id="history">History</option>
+                <option value='science' id="science">Science</option>
             </select>
         </p>
 
@@ -55,6 +55,45 @@
         <p>
             <input type='submit' id='submitted'>
         </p>
+
+        <script>
+            if ("{{type}}" == "Edit") {
+
+                var tid =  document.getElementById("{{row.tid}}");
+                var type =  document.getElementById("{{row.type}}");
+                var day =  document.getElementById("{{row.day}}");
+                var time =  document.getElementById("{{row.time}}");
+
+                var capacity = document.getElementById("capacity");
+
+                if (tid) {
+                    tid.selected = "selected";
+                }
+
+                if (type) {
+                    type.selected = "selected";
+                }
+
+                if (day) {
+                    day.selected = "selected";
+                }
+
+                if (time) {
+                    time.selected = "selected";
+                }
+
+                if (capacity) {
+                    capacity.value = "{{row.capacity}}";
+                }
+
+
+                var hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.value = "{{row.id}}";
+                hiddenInput.id = "id";
+                document.getElementById("form").appendChild(hiddenInput);
+            }
+        </script>
 
 
         <script src='/clientClasses.js'> </script>

@@ -40,6 +40,12 @@ function sendEdit() {
             capacity : capacity || 0
         }
 
+        var id = document.getElementById("id");
+
+        if (id) {
+            payload.hidden = id.value;
+        }
+
         req.open('POST', "/classes", true);
         req.setRequestHeader('Content-Type', 'application/json');
         responseListener(req);
