@@ -3,7 +3,7 @@
 
 <form method="post">
     <fieldset>
-        <legend>Edit Student</legend>
+        <legend id="formLabel">Add Student</legend>
         <p><label for="fname">First Name:
             <input type="text" name="fname" size="30" maxlength="100" id="fname" value={{fname}}>
         </label></p>
@@ -30,6 +30,9 @@
 
         <script>
             document.getElementById("{{grade}}").selected  = "selected";
+            document.getElementById("fname").value = {{fname}};
+            document.getElementById("lname").value = {{lname}};
+            document.getElementById("formLabel").textContent = "Edit Student";
         </script>
 
 
@@ -39,4 +42,4 @@
             <input type="submit" id="submitted">
         </p>
 
-<script src="/clientStudentsEdit.js"> </script>
+<script src="/clientStudents.js"> </script>

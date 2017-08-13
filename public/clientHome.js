@@ -161,7 +161,7 @@ function deleteRow(event) {
 function editRow(event) {
     event.preventDefault();
     var dbname = event.target.name;
-    window.location.href = "/" + dbname + "Edit?id=" + event.target.hiddenId;
+    window.location.href = "/" + dbname + "?id=" + event.target.hiddenId;
 }
 
 function addRow(event) {

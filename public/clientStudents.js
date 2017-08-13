@@ -1,9 +1,6 @@
 /**
  * Created by ericalee on 8/12/17.
  */
-/**
- * Created by ericalee on 8/12/17.
- */
 
 document.addEventListener('DOMContentLoaded', sendEdit);
 
@@ -24,6 +21,12 @@ function sendEdit() {
             fname : document.getElementById("fname").value,
             lname : document.getElementById("lname").value,
             grade : document.getElementById("grade").value};
+
+        var id = document.getElementById("id");
+
+        if (id) {
+            payload.hidden = id.value;
+        }
         req.open('POST', "/students", true);
         req.setRequestHeader('Content-Type', 'application/json');
         responseListener(req);

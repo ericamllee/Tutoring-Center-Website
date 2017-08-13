@@ -1,9 +1,9 @@
 <h1>Students</h1>
 
 
-<form method="post">
+<form method="post" id="form">
     <fieldset>
-        <legend>Add Student</legend>
+        <legend id="formLabel">{{type}} Student</legend>
         <p><label for="fname">First Name:
             <input type="text" name="fname" size="30" maxlength="100" id="fname">
         </label></p>
@@ -12,25 +12,48 @@
             <input type="text" name="lname" size="30" maxlength="100" id="lname">
         </label></p>
 
-        <!--<p><label for="Grade">Grade:-->
-            <!--<input type="number" name="grade" id="grade">-->
-        <!--</label></p>-->
 
         <p>
             <label>Grade</label>
             <select name='grade' id='grade'>
-                <option value=4>4</option>
-                <option value=5>5</option>
-                <option value=6>6</option>
-                <option value=7>7</option>
-                <option value=8>8</option>
-                <option value=9>9</option>
-                <option value=10>10</option>
-                <option value=11>11</option>
-                <option value=12>12</option>
+                <option value=4 id="4">4</option>
+                <option value=5 id="5">5</option>
+                <option value=6 id="6">6</option>
+                <option value=7 id="7">7</option>
+                <option value=8 id="8">8</option>
+                <option value=9 id="9">9</option>
+                <option value=10 id="10">10</option>
+                <option value=11 id="11">11</option>
+                <option value=12 id="12">12</option>
             </select>
         </p>
 
+        <script>
+            if ("{{type}}" == "Edit") {
+
+                var grade =  document.getElementById("{{row.grade}}");
+                var fname = document.getElementById("fname");
+                var lname = document.getElementById("lname");
+
+                if (grade) {
+                    grade.selected = "selected";
+                }
+
+                if (fname) {
+                    fname.value = "{{row.fname}}";
+                }
+
+                if (lname) {
+                    lname.value = "{{row.lname}}";
+                }
+
+                var hiddenInput = document.createElement("input");
+                hiddenInput.type = "hidden";
+                hiddenInput.value = "{{row.id}}";
+                hiddenInput.id = "id";
+                document.getElementById("form").appendChild(hiddenInput);
+            }
+        </script>
 
         <p>
             <input type="submit" id="submitted">
