@@ -6,17 +6,15 @@ var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lna
 
 function sendPost(event) {
     event.preventDefault();
-    console.log("in send post");
     var req = new XMLHttpRequest();
     req.open('POST', '/', true);
     req.setRequestHeader('Content-Type', 'application/json');
     var dbtype = document.querySelector('input[name = "db"]:checked').value;
     req.addEventListener('load', function () {
         if (req.status >= 200 && req.status < 400) {
-            console.log("got a response");
             var response = JSON.parse(req.responseText);
             makeTable(dbtype, response);
-            makeButton("Add to " + dbtype, addRow, document.body, "add " + dbtype, dbtype);
+            makeButton("Add", addRow, document.body, "addButton", dbtype);
         } else {
             console.log("Error in network request: " + req.statusText);
         }
@@ -37,6 +35,8 @@ function makeTable(tableName, response) {
     if (oldTable) {
         var parent = oldTable.parentNode;
         parent.removeChild(oldTable);
+        var oldButton = document.getElementById("Add");
+        parent.removeChild(oldButton);
     }
 
     //make the table
@@ -54,7 +54,6 @@ function makeTable(tableName, response) {
 
     //make each row.
     response.forEach(function(object) {
-        console.log(object);
         var newRow = document.createElement("tr");
         currentHeadings.forEach( function(column) {
             makeItem("td", newRow, object.id + object[column], object[column]);
@@ -66,43 +65,6 @@ function makeTable(tableName, response) {
     });
     document.body.appendChild(table);
 }
-
-// /**
-//  * This function handles adding an item to the database. It sends the backend the form information once it's submitted.
-//  *
-//  */
-// function addItem(){
-//     document.getElementById("submitted").addEventListener('click', function(event){
-//     event.preventDefault();
-//         var req = new XMLHttpRequest();
-//         //check for errors. If there are errors, return without sending information to the backend.
-//         if (errorHandler()) {
-//                return;
-//         }
-//         req.open('POST', "/", true);
-//         responseListener(req);
-//         req.setRequestHeader('Content-Type', 'application/json');
-//         req.send(formToJSONString());
-//    })}
-
-
-
-// /**
-//  * This function takes in the form and transforms the input to a JSON string.
-//  */
-// function formToJSONString(){
-//     var payload = {};
-//     for (var i = 0; i < 4; i++) {
-//         var thisValue = document.getElementById(headings[i]).value;
-//         payload[headings[i]] = thisValue;
-//      }
-//        if (document.getElementById("true").checked) {
-//            payload.lbs = 1;
-//        } else {
-//            payload.lbs = 0;
-//        }
-//     return JSON.stringify(payload);
-// }
 
 
 /**
@@ -145,25 +107,11 @@ function makeButton(text, funcName, parent, id, dbname) {
     button.append(t);
     button.id = text;
     parent.appendChild(button);
-    button.hiddenId = id;                           //is this necessary? or is makeHidden where the hidden id comes from?
+    button.hiddenId = id;
     button.name = dbname;
     button.addEventListener("click", funcName);
     return button;
 }
-
-
-// /**
-//  * This function adds the id to the form.
-//  * @param parent
-//  * @param id
-//  */
-// function makeHidden(parent, id, dbtype) {
-//     var hidden = document.createElement("input");
-//     hidden.type = "hidden";
-//     hidden.value = id;
-//     hidden.name = dbtype;
-//     parent.appendChild(hidden);
-// }
 
 
 /***
@@ -176,7 +124,6 @@ function makeForm(parent, id, dbname) {
     var form = document.createElement("FORM");
     makeButton("Edit", editRow, form, id, dbname);
     makeButton("Delete", deleteRow, form, id, dbname);
-    // makeHidden(form, id, dbname);
     parent.appendChild(form);
 }
 
@@ -189,7 +136,6 @@ function makeForm(parent, id, dbname) {
  */
 function deleteRow(event) {
     event.preventDefault();
-    console.log("in deleteRow");
     var req = new XMLHttpRequest();
     req.open('POST', "/", true);
     req.setRequestHeader('Content-Type', 'application/json');
@@ -197,7 +143,6 @@ function deleteRow(event) {
     var payload = {id: event.target.hiddenId, delete: "true", dbtype: name};
     req.addEventListener('load', function () {
         if (req.status >= 200 && req.status < 400) {
-            console.log("got a response");
             var response = JSON.parse(req.responseText);
             makeTable(name, response);
         } else {
@@ -215,9 +160,7 @@ function deleteRow(event) {
  */
 function editRow(event) {
     event.preventDefault();
-    console.log(event.target);
     var dbname = event.target.name;
-    console.log("in edit row" + dbname);
     window.location.href = "/" + dbname + "Edit?id=" + event.target.hiddenId;
 }
 
