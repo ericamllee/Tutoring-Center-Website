@@ -30,13 +30,14 @@ document.getElementById("submitted").addEventListener('click', sendPost);
 
 
 function makeTable(tableName, response) {
-    console.log("in makeTable");
     var oldTable = document.getElementById("table");
     if (oldTable) {
         var parent = oldTable.parentNode;
         parent.removeChild(oldTable);
         var oldButton = document.getElementById("Add");
-        parent.removeChild(oldButton);
+        if (oldButton) {
+            parent.removeChild(oldButton);
+        }
     }
 
     //make the table
@@ -55,12 +56,20 @@ function makeTable(tableName, response) {
     //make each row.
     response.forEach(function(object) {
         var newRow = document.createElement("tr");
+        newRow.id = "class" + object.id;
         currentHeadings.forEach( function(column) {
             makeItem("td", newRow, object.id + object[column], object[column]);
         })
 
         var lastCol =  makeItem("td", newRow);
         makeForm(lastCol, object.id, tableName);
+        if (tableName == "classes") {
+            makeButton("Show Students", showStudents, lastCol, object.id);
+            makeButton("Add Student", addStudent, lastCol, object.id);
+        } else if (tableName == "students") {
+            makeButton("Show Classes", showClasses, lastCol, object.id);
+            makeButton("Add Class", addClasses, lastCol, object.id);
+        }
         table.appendChild(newRow);
     });
     document.body.appendChild(table);
@@ -77,7 +86,7 @@ function makeTable(tableName, response) {
  * @param words
  * @returns {Element}
  */
-function makeItem(type, parent,  id, words) {
+function makeItem(type, parent,  id, words, value) {
     var item = document.createElement(type);
     if (id) {
         item.id = id;
@@ -85,6 +94,10 @@ function makeItem(type, parent,  id, words) {
     if (words) {
         item.append(words);
     }
+    if (value) {
+        item.value = value;
+    }
+
     item.style.border = "1px solid";
     parent.appendChild(item);
     return item;
@@ -168,4 +181,208 @@ function addRow(event) {
     event.preventDefault();
     var dbname = event.target.name;
     window.location.href = "/" + dbname;
+}
+
+function showStudents(event) {
+    var current = document.getElementById("students" + event.target.hiddenId);
+    if (current) {
+        var parent = current.parentNode;
+        parent.removeChild(current);
+    } else {
+        console.log("in show students");
+        event.preventDefault();
+        var id = event.target.hiddenId;
+        var req = new XMLHttpRequest();
+        req.open('POST', '/', true);
+        req.setRequestHeader('Content-Type', 'application/json');
+        req.addEventListener('load', function () {
+            if (req.status >= 200 && req.status < 400) {
+                var response = JSON.parse(req.responseText);
+                console.log(response);
+                var text = "";
+                response.forEach(function (item) {
+                    text += item.fname;
+                    text += " ";
+                    text += item.lname;
+                    text += ", ";
+                });
+
+                makeItem("td", document.getElementById("class" + id), "students" + id, text.slice(0, text.length - 2));
+            } else {
+                console.log("Error in network request: " + req.statusText);
+            }
+        });
+        var toSend = {showStudents: "true", id: id};
+        console.log(toSend);
+        req.send(JSON.stringify(toSend));
+    }
+}
+
+
+function showClasses(event) {
+    var current = document.getElementById("classes" + event.target.hiddenId);
+    if (current) {
+        var parent = current.parentNode;
+        parent.removeChild(current);
+    } else {
+        console.log("in show Classes");
+        event.preventDefault();
+        var id = event.target.hiddenId;
+        var req = new XMLHttpRequest();
+        req.open('POST', '/', true);
+        req.setRequestHeader('Content-Type', 'application/json');
+        req.addEventListener('load', function () {
+            if (req.status >= 200 && req.status < 400) {
+                var response = JSON.parse(req.responseText);
+                console.log(response);
+                var text = "";
+                response.forEach(function (item) {
+
+                    text += item.type;
+                    text += " class with ";
+                    text += item.teacher;
+                    text += " on "
+                    text += item.day;
+                    text += " at ";
+                    text += item.time;
+                    text += ", ";
+                });
+
+                makeItem("td", document.getElementById("class" + id), "classes" + id, text.slice(0, text.length - 2));
+            } else {
+                console.log("Error in network request: " + req.statusText);
+            }
+        });
+        var toSend = {showClasses: "true", id: id};
+        console.log(toSend);
+        req.send(JSON.stringify(toSend));
+    }
+}
+
+
+function addStudent(event) {
+    var current = document.getElementById("adding");
+    if (current) {
+        var parent = current.parentNode;
+        parent.removeChild(current);
+    }
+
+    console.log("in add students");
+    event.preventDefault();
+    var id = event.target.hiddenId;
+    var req = new XMLHttpRequest();
+    req.open('POST', '/', true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.addEventListener('load', function () {
+        if (req.status >= 200 && req.status < 400) {
+            var response = JSON.parse(req.responseText);
+            console.log(response);
+            var addCol = makeItem("td", document.getElementById("class" + id), "adding");
+            var addStudent = makeItem("FORM", document.getElementById("adding"), "addStudent" + id);
+
+            var select = makeItem("Select", addStudent, "findStudent");
+            response.forEach(function(student) {
+                makeItem("option", select, student.id, student.NAME, student.id);
+            });
+
+            var submit = document.createElement("input");
+            submit.type = "submit";
+            submit.id = "submitted";
+
+            addCol.appendChild(submit);
+            submit.addEventListener("click", function(event) {
+               var req2 = new XMLHttpRequest();
+               req2.open('Post', '/', true);
+               req2.setRequestHeader('Content-Type', 'application/json');
+               req2.addEventListener('load', function() {
+                   if (req2.status >= 200 && req.status < 400) {
+                       console.log(response);
+                   }
+               });
+
+               var sidElem = document.getElementById("findStudent");
+               var sid = sidElem.options[sidElem.selectedIndex].value;
+
+               var sendClass = {addStudentClass : true, cid: id, sid: sid};
+               req2.send(JSON.stringify(sendClass));
+            });
+
+        } else {
+            console.log("Error in network request: " + req.statusText);
+        }
+    });
+    var toSend = {addStudent: "true", id: id};
+    console.log(toSend);
+    req.send(JSON.stringify(toSend));
+}
+
+
+function addClasses(event) {
+    var current = document.getElementById("adding");
+    if (current) {
+        var parent = current.parentNode;
+        parent.removeChild(current);
+    }
+
+    console.log("in add classes");
+    event.preventDefault();
+    var id = event.target.hiddenId;
+    var req = new XMLHttpRequest();
+    req.open('POST', '/', true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    req.addEventListener('load', function () {
+        if (req.status >= 200 && req.status < 400) {
+            var response = JSON.parse(req.responseText);
+            console.log(response);
+
+            var addCol = makeItem("td", document.getElementById("class" + id), "adding");
+            console.log(addCol || "add Col is null");
+            var addClass = makeItem("FORM", document.getElementById("adding"), "addClass" + id);
+
+            var select = makeItem("Select", addClass, "findClass");
+            console.log(select || "select is null");
+            response.forEach(function(item) {
+                var text = "";
+                text += item.type;
+                text += " class with ";
+                text += item.fname;
+                text += " ";
+                text += item.lname;
+                text += " on "
+                text += item.day;
+                text += " at ";
+                text += item.time;
+                var last = makeItem("option", select, item.id, text, item.id);
+                console.log(last || "last is null");
+            });
+
+            var submit = document.createElement("input");
+            submit.type = "submit";
+            submit.id = "submitted";
+
+            addCol.appendChild(submit);
+            submit.addEventListener("click", function(event) {
+                var req2 = new XMLHttpRequest();
+                req2.open('Post', '/', true);
+                req2.setRequestHeader('Content-Type', 'application/json');
+                req2.addEventListener('load', function() {
+                    if (req2.status >= 200 && req.status < 400) {
+                        console.log(response);
+                    }
+                });
+
+                var cidElem = document.getElementById("findClass");
+                var cid = cidElem.options[cidElem.selectedIndex].value;
+
+                var sendClass = {addStudentClass : true, cid: cid, sid: id};
+                req2.send(JSON.stringify(sendClass));
+            });
+
+        } else {
+            console.log("Error in network request: " + req.statusText);
+        }
+    });
+    var toSend = {addClasses: "true", id: id};
+    console.log(toSend);
+    req.send(JSON.stringify(toSend));
 }

@@ -28,8 +28,75 @@ app.post('/',function(req,res,next){
         getTable(req.body.dbtype, res, next);
     } else if (req.body.delete) {
         deleteRow(req.body, res, next);
+    } else if (req.body.showStudents) {
+        console.log("in show students backend");
+        mysql.pool.query('SELECT fname, lname from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
+            if (err) {
+                console.log(err);
+                next(err);
+                return;
+            } else {
+                var context = rows;
+                console.log(context);
+                res.send(context);
+            }
+        });
+    } else if (req.body.addStudent) {
+        mysql.pool.query('select id, CONCAT(fname, " ", lname) as NAME from (select t1.id as id, t1.fname as fname, t1.lname as lname, t2.id as otherID from students t1 LEFT JOIN ' +
+            '(SELECT s.id FROM students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id = sc.cid WHERE c.id = ?) as t2 ON t1.id = t2.id) as t3 WHERE otherID IS NULL',
+            [req.body.id], function (err, rows, fields) {
+            if (err) {
+                console.log(err);
+                next(err);
+                return;
+            } else {
+                var context = rows;
+                console.log(context);
+                res.send(context);
+            }
+        });
+    } else if (req.body.addStudentClass) {
+        delete req.body.addStudentClass;
+        mysql.pool.query("INSERT INTO student_class SET ?", [req.body],
+            function (err, result) {
+                if (err) {
+                    next(err);
+                }
+                res.send(result);
+            });
+    } else if (req.body.showClasses) {
+        console.log("in show class backend");
+        mysql.pool.query('SELECT CONCAT(t.fname, " ", t.lname) as teacher, type, day, time from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
+            [req.body.id], function (err, rows, fields) {
+            if (err) {
+                console.log(err);
+                next(err);
+                return;
+            } else {
+                var context = rows;
+                console.log(context);
+                res.send(context);
+            }
+        });
+    } else if (req.body.addClasses) {
+        mysql.pool.query('select id, fname, lname, type, day, time from (select t1.id as id, t1.fname, t1.lname, t1.type, t1.day, t1.time, t2.id as otherID from (' +
+            'select cl.id, t.fname, t.lname, cl.type, cl.day, cl.time from classes cl ' +
+            'INNER JOIN teachers t ON cl.tid = t.id) as t1 ' +
+            'LEFT JOIN (' +
+            'SELECT c.id FROM `classes` c' +
+            ' INNER JOIN student_class sc ON sc.cid = c.id WHERE sc.sid = ?) as t2 ON t1.id = t2.id) as t3 WHERE otherID IS NULL',
+            [req.body.id], function (err, rows, fields) {
+                if (err) {
+                    console.log(err);
+                    next(err);
+                    return;
+                } else {
+                    var context = rows;
+                    console.log(context);
+                    res.send(context);
+                }
+            });
     }
-
 });
 
 
@@ -151,19 +218,6 @@ app.get('/classes', function(req, res, next) {
     });
 });
 
-// //This function handles the post request for the edit page.
-// app.post('/classesEdit', function(req, res, next) {
-//     var id = req.body.hidden;
-//     delete req.body.hidden;
-//     mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
-//         function(err, result) {
-//             if(err){
-//                 next(err);
-//             }
-//             res.send(result);
-//         });
-// });
-
 
 //This function handles the post request for the edit page.
 app.post('/classes', function(req, res, next) {
@@ -212,15 +266,6 @@ function getTable(tableName, res, next) {
     }
 }
 
-//
-// //this function handles the SQL response for deleting or adding rows.
-// function SQLResponse(err, results, next, res, name) {
-//     if (err) {
-//         next(err);
-//         return;
-//     }
-//     getTable(name, res, next);
-// }
 
 //This function handles deleting a row.
 function deleteRow(req, res, next) {
@@ -234,52 +279,6 @@ function deleteRow(req, res, next) {
         getTable(req.dbtype, res, next);
     });
 }
-
-
-
-//
-// //https://stackoverflow.com/questions/21779528/insert-into-fails-with-node-mysql
-// //used to figure out how to insert values stored in JSON into table.
-// //This function handles adding a row.
-// function addRow(json, next, res) {
-//     mysql.pool.query("INSERT INTO workout SET ?", json, function(err, results) {
-//         SQLResponse(err, results, next, res);
-//     });
-// }
-//
-//
-// //This function renders the edit page upon receiving an edit request.
-// app.get('/edit', function(req, res, next) {
-//     context = {};
-//     mysql.pool.query('SELECT * FROM workout WHERE id = ?', [req.query.id], function(err, rows, fields) {
-//     if (err) {
-//         console.log(err);
-//         next(err);
-//         return;
-//     }
-//     context = rows[0];
-//     res.render('edit', context);
-//     });
-// });
-//
-//
-// //This function handles the post request for the edit page.
-// app.post('/edit', function(req, res, next) {
-//     var id = req.body.hidden;
-//     delete req.body.hidden;
-//     mysql.pool.query("UPDATE workout SET ?  WHERE id=?", [req.body, id],
-//     function(err, result) {
-//         if(err){
-//             next(err);
-//         }
-//         if (result.lbs == 1) {
-//             result.lbs = true;
-//         } else {
-//             result.lbs = false;
-//         }
-//         res.send(result);
-//   });
-// });
 
 
 app.use(function(req,res){
