@@ -199,15 +199,15 @@ function showStudents(event) {
             if (req.status >= 200 && req.status < 400) {
                 var response = JSON.parse(req.responseText);
                 console.log(response);
-                var text = "";
+                var newCol = makeItem("td", document.getElementById("class" + id), "students" + id);
                 response.forEach(function (item) {
+                    var text = "";
                     text += item.fname;
                     text += " ";
                     text += item.lname;
-                    text += ", ";
+                    p = makeItem("p", newCol, item.id.toString() + id.toString(), text);
+                    makeRemove("Remove student", p, item.id, id);
                 });
-
-                makeItem("td", document.getElementById("class" + id), "students" + id, text.slice(0, text.length - 2));
             } else {
                 console.log("Error in network request: " + req.statusText);
             }
@@ -225,7 +225,6 @@ function showClasses(event) {
         var parent = current.parentNode;
         parent.removeChild(current);
     } else {
-        console.log("in show Classes");
         event.preventDefault();
         var id = event.target.hiddenId;
         var req = new XMLHttpRequest();
@@ -234,10 +233,9 @@ function showClasses(event) {
         req.addEventListener('load', function () {
             if (req.status >= 200 && req.status < 400) {
                 var response = JSON.parse(req.responseText);
-                console.log(response);
-                var text = "";
+                var newCol = makeItem("td", document.getElementById("class" + id), "classes" + id);
                 response.forEach(function (item) {
-
+                    var text = "";
                     text += item.type;
                     text += " class with ";
                     text += item.teacher;
@@ -245,19 +243,45 @@ function showClasses(event) {
                     text += item.day;
                     text += " at ";
                     text += item.time;
-                    text += ", ";
+                    var p = makeItem("p", newCol, id.toString() + item.id.toString(), text);
+                    makeRemove("Remove class", p, id, item.id);
                 });
-
-                makeItem("td", document.getElementById("class" + id), "classes" + id, text.slice(0, text.length - 2));
             } else {
                 console.log("Error in network request: " + req.statusText);
             }
         });
         var toSend = {showClasses: "true", id: id};
-        console.log(toSend);
         req.send(JSON.stringify(toSend));
     }
 }
+
+function makeRemove(text, parent, sid, cid) {
+    var button = document.createElement("BUTTON");
+    var t = document.createTextNode(text);
+    button.append(t);
+    parent.appendChild(button);
+    button.addEventListener("click", function(event) {
+        var req = new XMLHttpRequest();
+        req.open('POST', '/', true);
+        req.setRequestHeader('Content-Type', 'application/json');
+        req.addEventListener('load', function() {
+           if (req.status >= 200 && req.status < 400) {
+               console.log(sid.toString() + cid.toString());
+               var students = document.getElementById(sid.toString() + cid.toString());
+               var father = students.parentNode;
+               father.removeChild(students);
+           } else {
+               console.log("Error in network request: " + req.statusText);
+           }
+        });
+        var toSend = {removeItem: "true", sid: sid, cid:cid};
+        console.log(toSend);
+        req.send(JSON.stringify(toSend));
+    });
+    return button;
+}
+
+
 
 
 function addStudent(event) {
@@ -297,6 +321,11 @@ function addStudent(event) {
                req2.addEventListener('load', function() {
                    if (req2.status >= 200 && req.status < 400) {
                        console.log(response);
+                       var old = document.getElementById("adding");
+                       if (old) {
+                           var parent = old.parentNode;
+                           parent.removeChild(old);
+                       }
                    }
                });
 
@@ -336,11 +365,8 @@ function addClasses(event) {
             console.log(response);
 
             var addCol = makeItem("td", document.getElementById("class" + id), "adding");
-            console.log(addCol || "add Col is null");
             var addClass = makeItem("FORM", document.getElementById("adding"), "addClass" + id);
-
             var select = makeItem("Select", addClass, "findClass");
-            console.log(select || "select is null");
             response.forEach(function(item) {
                 var text = "";
                 text += item.type;
@@ -353,7 +379,6 @@ function addClasses(event) {
                 text += " at ";
                 text += item.time;
                 var last = makeItem("option", select, item.id, text, item.id);
-                console.log(last || "last is null");
             });
 
             var submit = document.createElement("input");
@@ -368,6 +393,18 @@ function addClasses(event) {
                 req2.addEventListener('load', function() {
                     if (req2.status >= 200 && req.status < 400) {
                         console.log(response);
+                        var old = document.getElementById("adding");
+                        if (old) {
+                            var parent = old.parentNode;
+                            parent.removeChild(old);
+                        }
+                        // var showStudents = document.getElementById("students" + id);
+                        // console.log(showStudents);
+                        // console.log("students" + id);
+                        // if (showStudents) {
+                        //     var parentStudent = showStudents.parentNode;
+                        //     parentStudent.removeChild(showStudents);
+                        // }                    //get rid of show students after adding a new one.
                     }
                 });
 

@@ -30,7 +30,7 @@ app.post('/',function(req,res,next){
         deleteRow(req.body, res, next);
     } else if (req.body.showStudents) {
         console.log("in show students backend");
-        mysql.pool.query('SELECT fname, lname from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
+        mysql.pool.query('SELECT fname, lname, s.id from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 next(err);
@@ -66,7 +66,7 @@ app.post('/',function(req,res,next){
             });
     } else if (req.body.showClasses) {
         console.log("in show class backend");
-        mysql.pool.query('SELECT CONCAT(t.fname, " ", t.lname) as teacher, type, day, time from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
+        mysql.pool.query('SELECT CONCAT(t.fname, " ", t.lname) as teacher, type, day, time, c.id from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
             [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
@@ -96,6 +96,14 @@ app.post('/',function(req,res,next){
                     res.send(context);
                 }
             });
+    } else if (req.body.removeItem) {
+        mysql.pool.query('DELETE from student_class WHERE sid = ? AND cid = ?', [req.body.sid, req.body.cid], function(err, results) {
+            if (err) {
+                next(err);
+                return;
+            }
+            res.send(results);
+        });
     }
 });
 
