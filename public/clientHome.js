@@ -2,7 +2,7 @@
 // CS 290
 // Final Project
 // Front-end page for the home page.
-var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["lname", "type", "day", "time", "capacity"]};
+var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["lname", "type", "day", "time", "capacity"], classrooms: ["name", "capacity"]};
 
 function sendPost(event) {
     event.preventDefault();

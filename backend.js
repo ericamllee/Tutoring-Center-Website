@@ -197,6 +197,51 @@ app.post('/teachers', function(req, res, next) {
 
 
 
+app.get('/classrooms', function(req, res, next) {
+    var context = {type : "Add"};
+    var id = req.query.id;
+    if (id) {
+        mysql.pool.query('SELECT * FROM classrooms WHERE id = ?', [id], function (err, rows, fields) {
+            if (err) {
+                console.log(err);
+                next(err);
+                return;
+            } else {
+                context.row = rows[0];
+                context.type = "Edit";
+                res.render('classrooms', context);
+            }
+        });
+    } else {
+        res.render('classrooms', context);
+    }
+});
+
+//This function handles the post request for the student edit page.
+app.post('/classrooms', function(req, res, next) {
+    var id = req.body.hidden;
+    if (id) {
+        delete req.body.hidden;
+        mysql.pool.query("UPDATE classrooms SET ?  WHERE id=?", [req.body, id],
+            function(err, result) {
+                if(err){
+                    next(err);
+                }
+                res.send(result);
+            });
+    } else {
+        mysql.pool.query("INSERT INTO classrooms SET ?", [req.body],
+            function (err, result) {
+                if (err) {
+                    next(err);
+                }
+                res.send(result);
+            });
+    }
+});
+
+
+
 //This function renders the teachers edit page upon receiving an edit request.
 app.get('/classes', function(req, res, next) {
     var context = {type : "Add"};
