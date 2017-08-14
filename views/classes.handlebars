@@ -47,9 +47,15 @@
             </select>
         </p>
 
-        <p><label for='capacity'>Capacity:
-            <input type='number' name='capacity' id='capacity'>
-        </label></p>
+
+        <p>
+            <label>Classroom</label>
+            <select name='classid' id='classid'>
+                {{#each classlist}}
+                    <option value={{this.id}} id="{{this.id}}">{{this.name}} cap:{{this.capacity}}</option>
+                {{/each}}
+            </select>
+        </p>
 
 
         <p>
@@ -64,7 +70,7 @@
                 var day =  document.getElementById("{{row.day}}");
                 var time =  document.getElementById("{{row.time}}");
 
-                var capacity = document.getElementById("capacity");
+                var classroom = document.getElementById("{{row.classid}}");
 
                 if (tid) {
                     tid.selected = "selected";
@@ -82,8 +88,8 @@
                     time.selected = "selected";
                 }
 
-                if (capacity) {
-                    capacity.value = "{{row.capacity}}";
+                if (classroom) {
+                    classid.value = "{{row.classid}}";
                 }
 
 

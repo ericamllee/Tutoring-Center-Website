@@ -66,7 +66,10 @@ app.post('/',function(req,res,next){
             });
     } else if (req.body.showClasses) {
         console.log("in show class backend");
-        mysql.pool.query('SELECT CONCAT(t.fname, " ", t.lname) as teacher, type, day, time, c.id from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
+        mysql.pool.query('SELECT CONCAT(t.fname, " ", t.lname) as teacher, type, day, time, c.id from students s ' +
+            'INNER JOIN student_class sc ON s.id = sc.sid ' +
+            'INNER JOIN classes c ON c.id =sc.cid ' +
+            'INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
             [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
@@ -79,12 +82,13 @@ app.post('/',function(req,res,next){
             }
         });
     } else if (req.body.addClasses) {
-        mysql.pool.query('select id, fname, lname, type, day, time from (select t1.id as id, t1.fname, t1.lname, t1.type, t1.day, t1.time, t2.id as otherID from (' +
-            'select cl.id, t.fname, t.lname, cl.type, cl.day, cl.time from classes cl ' +
-            'INNER JOIN teachers t ON cl.tid = t.id) as t1 ' +
-            'LEFT JOIN (' +
-            'SELECT c.id FROM `classes` c' +
-            ' INNER JOIN student_class sc ON sc.cid = c.id WHERE sc.sid = ?) as t2 ON t1.id = t2.id) as t3 WHERE otherID IS NULL',
+        mysql.pool.query('SELECT * FROM (SELECT COUNT(sid) as size, cr.capacity, c.day, c.time, c.type, t.fname, t.lname, c.id FROM classes c ' +
+            'INNER JOIN teachers t ON t.id = c.tid ' +
+            'INNER JOIN classrooms cr ON c.classid = cr.id ' +
+            'LEFT JOIN student_class sc ON sc.cid = c.id GROUP BY cid) as t1 ' +
+            'WHERE t1.id NOT IN ' +
+            '(SELECT cl.id from classes cl INNER JOIN student_class sc ON cl.id = sc.cid ' +
+            'INNER JOIN students s ON sc.sid = s.id WHERE s.id = ?) AND size < capacity;',
             [req.body.id], function (err, rows, fields) {
                 if (err) {
                     console.log(err);
@@ -253,20 +257,29 @@ app.get('/classes', function(req, res, next) {
             return;
         } else {
             context.teacherList = rows;
-            if (id) {
-                mysql.pool.query('SELECT * FROM classes WHERE id = ?', [id], function(err, rows, fields) {
-                    if (err) {
-                        console.log(err);
-                        next(err);
-                        return;
+            mysql.pool.query('SELECT * FROM classrooms', function(err, rows, fields) {
+                if (err) {
+                    console.log(err);
+                    next(err);
+                    return;
+                } else {
+                    context.classlist = rows;
+                    if (id) {
+                        mysql.pool.query('SELECT * FROM classes WHERE id = ?', [id], function (err, rows, fields) {
+                            if (err) {
+                                console.log(err);
+                                next(err);
+                                return;
+                            }
+                            context.row = rows[0];
+                            context.type = "Edit";
+                            res.render('classes', context);
+                        });
+                    } else {
+                        res.render('classes', context);
                     }
-                    context.row = rows[0];
-                    context.type = "Edit";
-                    res.render('classes', context);
-                    });
-            } else {
-                res.render('classes', context);
-            }
+                }
+            });
         }
     });
 });
@@ -299,7 +312,9 @@ app.post('/classes', function(req, res, next) {
 //This function sends the results of the full table to the client page.
 function getTable(tableName, res, next) {
     if (tableName === "classes") {
-        mysql.pool.query('SELECT lname, c.id, type, day, time, capacity FROM classes c INNER JOIN teachers t ON t.id = c.tid', [tableName], function(err, rows, fields){
+        mysql.pool.query('SELECT CONCAT(fname, " ", lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c ' +
+            'INNER JOIN teachers t ON t.id = c.tid INNER JOIN classrooms cr ON c.classid = cr.id LEFT JOIN student_class sc ON c.id = sc.cid GROUP BY sc.cid ORDER BY day, time',
+            [tableName], function(err, rows, fields){
             if(err){
                 next(err);
                 return;

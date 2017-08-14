@@ -26,18 +26,15 @@ function sendEdit() {
         var type = document.getElementById("type");
         var classtype = type.options[type.selectedIndex].value;
 
-        var capacity = document.getElementById("capacity").value
+        var classid = document.getElementById("classid").value
 
-        if (capacity < 0) {
-            return;
-        }
 
         payload = {
             tid : teacherID,
             day : dayName,
             time : timeSet,
             type : classtype,
-            capacity : capacity || 0
+            classid : classid
         }
 
         var id = document.getElementById("id");

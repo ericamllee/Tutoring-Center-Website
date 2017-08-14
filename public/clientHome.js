@@ -2,7 +2,7 @@
 // CS 290
 // Final Project
 // Front-end page for the home page.
-var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["lname", "type", "day", "time", "capacity"], classrooms: ["name", "capacity"]};
+var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["teacher", "type", "day", "time", "classroom", "capacity", "size"], classrooms: ["name", "capacity"]};
 
 function sendPost(event) {
     event.preventDefault();
@@ -59,13 +59,17 @@ function makeTable(tableName, response) {
         newRow.id = "class" + object.id;
         currentHeadings.forEach( function(column) {
             makeItem("td", newRow, object.id + object[column], object[column]);
-        })
+        });
 
         var lastCol =  makeItem("td", newRow);
         makeForm(lastCol, object.id, tableName);
         if (tableName == "classes") {
             makeButton("Show Students", showStudents, lastCol, object.id);
-            makeButton("Add Student", addStudent, lastCol, object.id);
+            console.log(object.size);
+            if (object.size < object.capacity) {
+                makeButton("Add Student", addStudent, lastCol, object.id);
+            }
+
         } else if (tableName == "students") {
             makeButton("Show Classes", showClasses, lastCol, object.id);
             makeButton("Add Class", addClasses, lastCol, object.id);
@@ -154,14 +158,7 @@ function deleteRow(event) {
     req.setRequestHeader('Content-Type', 'application/json');
     var name = event.target.name;
     var payload = {id: event.target.hiddenId, delete: "true", dbtype: name};
-    req.addEventListener('load', function () {
-        if (req.status >= 200 && req.status < 400) {
-            var response = JSON.parse(req.responseText);
-            makeTable(name, response);
-        } else {
-            console.log("Error in network request: " + req.statusText);
-        }
-    });
+    req.addEventListener('load', sendPost);
     req.send(JSON.stringify(payload));
 }
 
@@ -264,16 +261,7 @@ function makeRemove(text, parent, sid, cid) {
         var req = new XMLHttpRequest();
         req.open('POST', '/', true);
         req.setRequestHeader('Content-Type', 'application/json');
-        req.addEventListener('load', function() {
-           if (req.status >= 200 && req.status < 400) {
-               console.log(sid.toString() + cid.toString());
-               var students = document.getElementById(sid.toString() + cid.toString());
-               var father = students.parentNode;
-               father.removeChild(students);
-           } else {
-               console.log("Error in network request: " + req.statusText);
-           }
-        });
+        req.addEventListener('load', sendPost);
         var toSend = {removeItem: "true", sid: sid, cid:cid};
         console.log(toSend);
         req.send(JSON.stringify(toSend));
@@ -318,17 +306,7 @@ function addStudent(event) {
                var req2 = new XMLHttpRequest();
                req2.open('Post', '/', true);
                req2.setRequestHeader('Content-Type', 'application/json');
-               req2.addEventListener('load', function() {
-                   if (req2.status >= 200 && req.status < 400) {
-                       console.log(response);
-                       var old = document.getElementById("adding");
-                       if (old) {
-                           var parent = old.parentNode;
-                           parent.removeChild(old);
-                       }
-                   }
-               });
-
+               req2.addEventListener('load', sendPost);
                var sidElem = document.getElementById("findStudent");
                var sid = sidElem.options[sidElem.selectedIndex].value;
 
@@ -364,6 +342,11 @@ function addClasses(event) {
             var response = JSON.parse(req.responseText);
             console.log(response);
 
+            if (response.length === 0) {
+                console.log("no classes to add");
+                return;
+            }
+
             var addCol = makeItem("td", document.getElementById("class" + id), "adding");
             var addClass = makeItem("FORM", document.getElementById("adding"), "addClass" + id);
             var select = makeItem("Select", addClass, "findClass");
@@ -390,24 +373,7 @@ function addClasses(event) {
                 var req2 = new XMLHttpRequest();
                 req2.open('Post', '/', true);
                 req2.setRequestHeader('Content-Type', 'application/json');
-                req2.addEventListener('load', function() {
-                    if (req2.status >= 200 && req.status < 400) {
-                        console.log(response);
-                        var old = document.getElementById("adding");
-                        if (old) {
-                            var parent = old.parentNode;
-                            parent.removeChild(old);
-                        }
-                        // var showStudents = document.getElementById("students" + id);
-                        // console.log(showStudents);
-                        // console.log("students" + id);
-                        // if (showStudents) {
-                        //     var parentStudent = showStudents.parentNode;
-                        //     parentStudent.removeChild(showStudents);
-                        // }                    //get rid of show students after adding a new one.
-                    }
-                });
-
+                req2.addEventListener('load', sendPost);
                 var cidElem = document.getElementById("findClass");
                 var cid = cidElem.options[cidElem.selectedIndex].value;
 
