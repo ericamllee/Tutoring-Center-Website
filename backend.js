@@ -15,7 +15,7 @@ app.set('port', 3000);
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
-var numAttributes = {capacity : true, size : true};
+var numAttributes = {capacity : true, size : true, grade : true};
 
 
 //render the home page upon first arriving to the page.
@@ -32,14 +32,16 @@ app.post('/',function(req,res,next){
         deleteRow(req.body, res, next);
     } else if (req.body.filter) {
         var type = req.body.dbtype;
+        delete req.body.dbtype;
+        delete req.body.filter;
         if (type === "classes") {
-            getTable(req.body.dbtype, res, next);
+            filter("SELECT * FROM (SELECT CONCAT(fname, ' ', lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c " +
+            'INNER JOIN teachers t ON t.id = c.tid ' +
+            'INNER JOIN classrooms cr ON c.classid = cr.id ' +
+            'LEFT JOIN student_class sc ON c.id = sc.cid ' +
+            'GROUP BY sc.cid ORDER BY day, time) as t1', req.body, res, next);
         } else {
-            delete req.body.dbtype;
-            delete req.body.filter;
-            console.log("in backend filter");
-            console.log(req.body);
-            filter(type, req.body, res, next);
+            filter("SELECT * FROM " + type, req.body, res, next);
         }
     } else if (req.body.showStudents) {
         mysql.pool.query('SELECT fname, lname, s.id from students s ' +
@@ -360,7 +362,7 @@ function deleteRow(req, res, next) {
 }
 
 
-function filter(type, list, res, next) {
+function filter(baseQuery, list, res, next) {
     console.log(list);
     var searchItems = [];
     var afterFilter = Object.keys(list).filter(function(key) {
@@ -371,7 +373,7 @@ function filter(type, list, res, next) {
     var afterMap = afterFilter.map(function(goodKey) {
         console.log(goodKey);
         console.log(goodKey in numAttributes);
-        var itemText = goodKey + ((goodKey in numAttributes) ? "= ? " : " LIKE ?");
+        var itemText = goodKey + ((goodKey in numAttributes) ? " = ? " : " LIKE ?");
         console.log(itemText);
         if (!(goodKey in numAttributes)) {
             list[goodKey] = "%" + list[goodKey] + "%";
@@ -388,7 +390,7 @@ function filter(type, list, res, next) {
     }
 
     console.log(text);
-    var query = "SELECT * FROM " + type + text;
+    var query = baseQuery + text;
     console.log(query);
 
     mysql.pool.query(query, searchItems, function(err, results) {
