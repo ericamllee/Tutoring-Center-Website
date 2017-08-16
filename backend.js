@@ -15,6 +15,8 @@ app.set('port', 3000);
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
+var numAttributes = {capacity : true, size : true};
+
 
 //render the home page upon first arriving to the page.
 app.get('/', function(req, res, next) {
@@ -29,10 +31,20 @@ app.post('/',function(req,res,next){
     } else if (req.body.delete) {
         deleteRow(req.body, res, next);
     } else if (req.body.filter) {
-        console.log(req.body);
-        getTable(req.body.dbtype, res, next);
+        var type = req.body.dbtype;
+        if (type === "classes") {
+            getTable(req.body.dbtype, res, next);
+        } else {
+            delete req.body.dbtype;
+            delete req.body.filter;
+            console.log("in backend filter");
+            console.log(req.body);
+            filter(type, req.body, res, next);
+        }
     } else if (req.body.showStudents) {
-        mysql.pool.query('SELECT fname, lname, s.id from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
+        mysql.pool.query('SELECT fname, lname, s.id from students s ' +
+            'INNER JOIN student_class sc ON s.id = sc.sid ' +
+            'INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 next(err);
@@ -43,8 +55,12 @@ app.post('/',function(req,res,next){
             }
         });
     } else if (req.body.addStudent) {
-        mysql.pool.query('select id, CONCAT(fname, " ", lname) as NAME from (select t1.id as id, t1.fname as fname, t1.lname as lname, t2.id as otherID from students t1 LEFT JOIN ' +
-            '(SELECT s.id FROM students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id = sc.cid WHERE c.id = ?) as t2 ON t1.id = t2.id) as t3 WHERE otherID IS NULL',
+        mysql.pool.query('select id, CONCAT(fname, " ", lname) as NAME from ' +
+            '(select t1.id as id, t1.fname as fname, t1.lname as lname, t2.id as otherID from students t1 ' +
+            'LEFT JOIN ' +
+            '(SELECT s.id FROM students s ' +
+            'INNER JOIN student_class sc ON s.id = sc.sid ' +
+            'INNER JOIN classes c ON c.id = sc.cid WHERE c.id = ?) as t2 ON t1.id = t2.id) as t3 WHERE otherID IS NULL',
             [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
@@ -221,7 +237,7 @@ app.post('/classrooms', function(req, res, next) {
     var id = req.body.hidden;
     if (id) {
         delete req.body.hidden;
-        mysql.pool.query("UPDATE classrooms SET ?  WHERE id=?", [req.body, id],
+        mysql.pool.query("UPDATE classrooms SET ?  WHERE id = ?", [req.body, id],
             function(err, result) {
                 if(err){
                     next(err);
@@ -307,7 +323,10 @@ app.post('/classes', function(req, res, next) {
 function getTable(tableName, res, next) {
     if (tableName === "classes") {
         mysql.pool.query('SELECT CONCAT(fname, " ", lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c ' +
-            'INNER JOIN teachers t ON t.id = c.tid INNER JOIN classrooms cr ON c.classid = cr.id LEFT JOIN student_class sc ON c.id = sc.cid GROUP BY sc.cid ORDER BY day, time',
+            'INNER JOIN teachers t ON t.id = c.tid ' +
+            'INNER JOIN classrooms cr ON c.classid = cr.id ' +
+            'LEFT JOIN student_class sc ON c.id = sc.cid ' +
+            'GROUP BY sc.cid ORDER BY day, time',
             [tableName], function(err, rows, fields){
             if(err){
                 next(err);
@@ -340,6 +359,45 @@ function deleteRow(req, res, next) {
     });
 }
 
+
+function filter(type, list, res, next) {
+    console.log(list);
+    var searchItems = [];
+    var afterFilter = Object.keys(list).filter(function(key) {
+        return list[key] !== "";
+    });
+    console.log(afterFilter);
+
+    var afterMap = afterFilter.map(function(goodKey) {
+        console.log(goodKey);
+        console.log(goodKey in numAttributes);
+        var itemText = goodKey + ((goodKey in numAttributes) ? "= ? " : " LIKE ?");
+        console.log(itemText);
+        if (!(goodKey in numAttributes)) {
+            list[goodKey] = "%" + list[goodKey] + "%";
+        }
+        searchItems.push(list[goodKey]);
+        return itemText;
+    });
+    console.log(afterMap);
+
+    var text = afterMap.join(" AND ");
+
+    if (text !== "") {
+        text = " WHERE " + text;
+    }
+
+    console.log(text);
+    var query = "SELECT * FROM " + type + text;
+    console.log(query);
+
+    mysql.pool.query(query, searchItems, function(err, results) {
+        if (err) {
+            next(err);
+        }
+        res.send(results);
+    });
+}
 
 app.use(function(req,res){
     res.status(404);
