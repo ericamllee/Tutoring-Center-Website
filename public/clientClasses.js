@@ -26,7 +26,7 @@ function sendEdit() {
         var type = document.getElementById("type");
         var classtype = type.options[type.selectedIndex].value;
 
-        var classid = document.getElementById("classid").value
+        var classid = document.getElementById("classid").value;
 
 
         payload = {

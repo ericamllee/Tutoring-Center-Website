@@ -10,36 +10,34 @@ function sendPost(event) {
     req.open('POST', '/', true);
     req.setRequestHeader('Content-Type', 'application/json');
     var dbtype = document.querySelector('input[name = "db"]:checked').value;
-    req.addEventListener('load', function () {
-        if (req.status >= 200 && req.status < 400) {
-            var response = JSON.parse(req.responseText);
-            makeTable(dbtype, response);
-            makeButton("Add", addRow, document.body, "addButton", dbtype);
-        } else {
-            console.log("Error in network request: " + req.statusText);
-        }
-    });
-    console.log(dbtype);
+    tableResponse(req, dbtype, true);
     var toSend = {makeTable: "true", dbtype: dbtype};
     req.send(JSON.stringify(toSend));
 }
 
+function tableResponse(req, dbtype, bool) {
+    req.addEventListener('load', function() {
+        if (req.status >= 200 && req.status < 400) {
+            var response = JSON.parse(req.responseText);
+            removeOld("filterForm");
+            removeOld("table");
+            removeOld("Add");
+            makeTable(dbtype, response);
+            makeButton("Add", addRow, document.body, "addButton", dbtype);
+            if (bool) {
+                makeFilterForm(dbtype);
+            }
+        } else {
+            console.log("Error in network request: " + req.statusText);
+        }
+    });
+}
 
 document.getElementById("submitted").addEventListener('click', sendPost);
 
 
 
 function makeTable(tableName, response) {
-    var oldTable = document.getElementById("table");
-    if (oldTable) {
-        var parent = oldTable.parentNode;
-        parent.removeChild(oldTable);
-        var oldButton = document.getElementById("Add");
-        if (oldButton) {
-            parent.removeChild(oldButton);
-        }
-    }
-
     //make the table
     var table = document.createElement("table");
     table.id = "table";
@@ -65,7 +63,6 @@ function makeTable(tableName, response) {
         makeForm(lastCol, object.id, tableName);
         if (tableName == "classes") {
             makeButton("Show Students", showStudents, lastCol, object.id);
-            console.log(object.size);
             if (object.size < object.capacity) {
                 makeButton("Add Student", addStudent, lastCol, object.id);
             }
@@ -186,7 +183,6 @@ function showStudents(event) {
         var parent = current.parentNode;
         parent.removeChild(current);
     } else {
-        console.log("in show students");
         event.preventDefault();
         var id = event.target.hiddenId;
         var req = new XMLHttpRequest();
@@ -198,10 +194,7 @@ function showStudents(event) {
                 console.log(response);
                 var newCol = makeItem("td", document.getElementById("class" + id), "students" + id);
                 response.forEach(function (item) {
-                    var text = "";
-                    text += item.fname;
-                    text += " ";
-                    text += item.lname;
+                    var text = item.fname + " " + itemlname;
                     p = makeItem("p", newCol, item.id.toString() + id.toString(), text);
                     makeRemove("Remove student", p, item.id, id);
                 });
@@ -232,15 +225,7 @@ function showClasses(event) {
                 var response = JSON.parse(req.responseText);
                 var newCol = makeItem("td", document.getElementById("class" + id), "classes" + id);
                 response.forEach(function (item) {
-                    var text = "";
-                    text += item.type;
-                    text += " class with ";
-                    text += item.teacher;
-                    text += " on "
-                    text += item.day;
-                    text += " at ";
-                    text += item.time;
-                    var p = makeItem("p", newCol, id.toString() + item.id.toString(), text);
+                    var p = makeItem("p", newCol, id.toString() + item.id.toString(), classToString(item));
                     makeRemove("Remove class", p, id, item.id);
                 });
             } else {
@@ -269,6 +254,9 @@ function makeRemove(text, parent, sid, cid) {
     return button;
 }
 
+function classToString(item) {
+    return item.type + " class with " + item.fname + " " + item.lname + " on " + item.day + " at " + item.time;
+}
 
 
 
@@ -325,13 +313,7 @@ function addStudent(event) {
 
 
 function addClasses(event) {
-    var current = document.getElementById("adding");
-    if (current) {
-        var parent = current.parentNode;
-        parent.removeChild(current);
-    }
-
-    console.log("in add classes");
+    removeOld("adding");
     event.preventDefault();
     var id = event.target.hiddenId;
     var req = new XMLHttpRequest();
@@ -351,17 +333,7 @@ function addClasses(event) {
             var addClass = makeItem("FORM", document.getElementById("adding"), "addClass" + id);
             var select = makeItem("Select", addClass, "findClass");
             response.forEach(function(item) {
-                var text = "";
-                text += item.type;
-                text += " class with ";
-                text += item.fname;
-                text += " ";
-                text += item.lname;
-                text += " on "
-                text += item.day;
-                text += " at ";
-                text += item.time;
-                var last = makeItem("option", select, item.id, text, item.id);
+                var last = makeItem("option", select, item.id, classToString(item), item.id);
             });
 
             var submit = document.createElement("input");
@@ -386,6 +358,65 @@ function addClasses(event) {
         }
     });
     var toSend = {addClasses: "true", id: id};
+    console.log(toSend);
+    req.send(JSON.stringify(toSend));
+}
+
+function removeOld(itemID) {
+    var item = document.getElementById(itemID);
+    if (item) {
+        var parent = item.parentNode;
+        parent.removeChild(item);
+    }
+}
+
+function makeFilterForm(type) {
+    removeOld("filterForm");
+
+    var form = document.createElement("FORM");
+    form.method = "post";
+    form.id = "filterForm";
+
+    var title = document.createElement("h2");
+    title.textContent = "\nFilter By:\n";
+    form.appendChild(title);
+
+    makeTextBoxes(headings[type], form);
+    var submitButton = document.createElement("input");
+    submitButton.type = "submit";
+    submitButton.id = "submitted";
+    submitButton.addEventListener('click', sendFilter);
+    form.appendChild(submitButton);
+    document.body.appendChild(form);
+}
+
+
+function makeTextBoxes(textArray, parent) {
+    textArray.forEach(function(text) {
+        var p = document.createElement("p");
+        // var label, textbox;
+        // label = document.createElement('label');
+        p.appendChild(document.createTextNode(text + ": "));
+        var textbox = document.createElement('input');
+        textbox.id = "filter" + text;
+        textbox.type = 'text';
+        p.appendChild(textbox);
+        parent.appendChild(p);
+    });
+}
+
+function sendFilter(event) {
+    event.preventDefault();
+    var req = new XMLHttpRequest();
+    req.open('POST', '/', true);
+    req.setRequestHeader('Content-Type', 'application/json');
+    var dbtype = document.querySelector('input[name = "db"]:checked').value;
+    // req.addEventListener('load', tableResponse);
+    tableResponse(req, dbtype, false);
+    var toSend = {filter: "true", dbtype: dbtype};
+    headings[dbtype].forEach(function(heading) {
+        toSend[heading] = document.getElementById("filter" + heading).value;
+    });
     console.log(toSend);
     req.send(JSON.stringify(toSend));
 }

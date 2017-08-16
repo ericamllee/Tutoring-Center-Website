@@ -28,13 +28,14 @@ app.post('/',function(req,res,next){
         getTable(req.body.dbtype, res, next);
     } else if (req.body.delete) {
         deleteRow(req.body, res, next);
+    } else if (req.body.filter) {
+        console.log(req.body);
+        getTable(req.body.dbtype, res, next);
     } else if (req.body.showStudents) {
-        console.log("in show students backend");
         mysql.pool.query('SELECT fname, lname, s.id from students s INNER JOIN student_class sc ON s.id = sc.sid INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 next(err);
-                return;
             } else {
                 var context = rows;
                 console.log(context);
@@ -48,7 +49,6 @@ app.post('/',function(req,res,next){
             if (err) {
                 console.log(err);
                 next(err);
-                return;
             } else {
                 var context = rows;
                 console.log(context);
@@ -74,7 +74,6 @@ app.post('/',function(req,res,next){
             if (err) {
                 console.log(err);
                 next(err);
-                return;
             } else {
                 var context = rows;
                 console.log(context);
@@ -93,7 +92,6 @@ app.post('/',function(req,res,next){
                 if (err) {
                     console.log(err);
                     next(err);
-                    return;
                 } else {
                     var context = rows;
                     console.log(context);
@@ -120,7 +118,6 @@ app.get('/students', function(req, res, next) {
             if (err) {
                 console.log(err);
                 next(err);
-                return;
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
@@ -164,7 +161,6 @@ app.get('/teachers', function(req, res, next) {
             if (err) {
                 console.log(err);
                 next(err);
-                return;
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
@@ -209,7 +205,6 @@ app.get('/classrooms', function(req, res, next) {
             if (err) {
                 console.log(err);
                 next(err);
-                return;
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
@@ -254,7 +249,6 @@ app.get('/classes', function(req, res, next) {
         if (err) {
             console.log(err);
             next(err);
-            return;
         } else {
             context.teacherList = rows;
             mysql.pool.query('SELECT * FROM classrooms', function(err, rows, fields) {
@@ -317,7 +311,6 @@ function getTable(tableName, res, next) {
             [tableName], function(err, rows, fields){
             if(err){
                 next(err);
-                return;
             }
             results = JSON.stringify(rows);
             res.send(results);
@@ -342,7 +335,6 @@ function deleteRow(req, res, next) {
     mysql.pool.query("DELETE FROM ?? WHERE id = ?", [req.dbtype, req.id], function(err, results) {
         if (err) {
             next(err);
-            return;
         }
         getTable(req.dbtype, res, next);
     });

@@ -13,7 +13,8 @@ function sendEdit() {
         event.preventDefault();
         var req = new XMLHttpRequest();
         var payload;
-        if (document.getElementById("fname").value === "") {
+        if (document.getElementById("fname").value === "" || document.getElementById("lname") === "") {
+            console.log("Please fill out all fields");
             return;
         }
 
