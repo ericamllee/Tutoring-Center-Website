@@ -11,7 +11,7 @@ var handlebars = require('express-handlebars').create({defaultLayout:'main'});
 
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
-app.set('port', 3000);
+app.set('port', 4000);
 app.use(express.static('public'));
 app.use(bodyParser.json());
 
@@ -54,7 +54,6 @@ app.post('/',function(req,res,next){
                 return;
             } else {
                 var context = rows;
-                console.log(context);
                 res.send(context);
             }
         });
@@ -73,7 +72,6 @@ app.post('/',function(req,res,next){
                 return;
             } else {
                 var context = rows;
-                console.log(context);
                 res.send(context);
             }
         });
@@ -90,7 +88,6 @@ app.post('/',function(req,res,next){
                 res.send(result);
             });
     } else if (req.body.showClasses) {
-        console.log("in show class backend");
         mysql.pool.query('SELECT t.fname, t.lname, type, day, time, c.id from students s ' +
             'INNER JOIN student_class sc ON s.id = sc.sid ' +
             'INNER JOIN classes c ON c.id =sc.cid ' +
@@ -103,19 +100,24 @@ app.post('/',function(req,res,next){
                 return;
             } else {
                 var context = rows;
-                console.log(context);
                 res.send(context);
             }
         });
     } else if (req.body.addClasses) {
-        mysql.pool.query('SELECT * FROM (SELECT COUNT(sid) as size, cr.capacity, c.day, c.time, c.type, t.fname, t.lname, c.id FROM classes c ' +
-            'INNER JOIN teachers t ON t.id = c.tid ' +
-            'INNER JOIN classrooms cr ON c.classid = cr.id ' +
-            'LEFT JOIN student_class sc ON sc.cid = c.id GROUP BY c.id) as t1 ' +
+        mysql.pool.query('SELECT t3.fname, t3.lname, t3.type, t3.day, t3.time, t3.id FROM ' +
+            '(SELECT * FROM ' +
+            '(SELECT COUNT(sid) as size, cr.capacity, c.day, c.time, c.type, t.fname, t.lname, c.id FROM classes c ' +
+            'INNER JOIN teachers t ON t.id = c.tid INNER JOIN classrooms cr ON c.classid = cr.id ' +
+            'LEFT JOIN student_class sc ON sc.cid = c.id GROUP BY c.id)  as t1 ' +
             'WHERE t1.id NOT IN ' +
-            '(SELECT cl.id from classes cl INNER JOIN student_class sc ON cl.id = sc.cid ' +
-            'INNER JOIN students s ON sc.sid = s.id WHERE s.id = ?) AND size < capacity;',
-            [req.body.id], function (err, rows, fields) {
+            '(SELECT cl.id from classes cl ' +
+            'INNER JOIN student_class sc ON cl.id = sc.cid ' +
+            'INNER JOIN students s ON sc.sid = s.id WHERE s.id = ?) AND size < capacity) as t3 ' +
+            'LEFT JOIN ' +
+            '(SELECT c.id, c.day, c.time FROM classes c ' +
+            'INNER JOIN student_class sc ON sc.cid = c.id WHERE sc.sid = ?) as t4 ' +
+            'ON t3.day = t4.day AND t3.time = t4.time WHERE t4.id IS NULL;',
+            [req.body.id, req.body.id], function (err, rows, fields) {
                 if (err) {
                     console.log(err);
                     res.send(JSON.stringify(err));
@@ -123,7 +125,6 @@ app.post('/',function(req,res,next){
                     return;
                 } else {
                     var context = rows;
-                    console.log(context);
                     res.send(context);
                 }
             });
@@ -381,7 +382,6 @@ app.post('/classes', function(req, res, next) {
 //This function sends the results of the full table to the client page.
 function getTable(tableName, res, next) {
     if (tableName === "classes") {
-        console.log('in make classes');
         mysql.pool.query('SELECT CONCAT(fname, " ", lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c ' +
             'INNER JOIN teachers t ON t.id = c.tid ' +
             'INNER JOIN classrooms cr ON c.classid = cr.id ' +
@@ -414,8 +414,6 @@ function getTable(tableName, res, next) {
 
 //This function handles deleting a row.
 function deleteRow(req, res, next) {
-    console.log('in delete row');
-    console.log(req);
     mysql.pool.query("DELETE FROM ?? WHERE id = ?", [req.dbtype, req.id], function(err, results) {
         if (err) {
             console.log(err);
@@ -429,35 +427,23 @@ function deleteRow(req, res, next) {
 
 
 function filter(baseQuery, list, res, next) {
-    console.log(list);
     var searchItems = [];
-    var afterFilter = Object.keys(list).filter(function(key) {
+    var text = Object.keys(list).filter(function(key) {
         return list[key] !== "";
-    });
-    console.log(afterFilter);
-
-    var afterMap = afterFilter.map(function(goodKey) {
-        console.log(goodKey);
-        console.log(goodKey in numAttributes);
+    }).map(function(goodKey) {
         var itemText = goodKey + ((goodKey in numAttributes) ? " = ? " : " LIKE ?");
-        console.log(itemText);
         if (!(goodKey in numAttributes)) {
             list[goodKey] = "%" + list[goodKey] + "%";
         }
         searchItems.push(list[goodKey]);
         return itemText;
-    });
-    console.log(afterMap);
-
-    var text = afterMap.join(" AND ");
+    }).join(" AND ");
 
     if (text !== "") {
         text = " WHERE " + text;
     }
 
-    console.log(text);
     var query = baseQuery + text;
-    console.log(query);
 
     mysql.pool.query(query, searchItems, function(err, results) {
         if (err) {

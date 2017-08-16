@@ -15,7 +15,7 @@ function sendEdit() {
 
         var req = new XMLHttpRequest();
         var payload;
-        if (document.getElementById("fname").value === "" || document.getElementById("lname") === "") {
+        if (document.getElementById("fname").value === "" || document.getElementById("lname").value === "") {
             var p = document.createElement("p");
             p.id = "error message";
             p.textContent = "Please fill out all fields";
