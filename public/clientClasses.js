@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', sendEdit);
 function sendEdit() {
     document.getElementById("submitted").addEventListener('click', function(event) {
         event.preventDefault();
+
+        removeOld("error message");
         var req = new XMLHttpRequest();
         var payload;
         var tid = document.getElementById("tid");
@@ -35,7 +37,7 @@ function sendEdit() {
             time : timeSet,
             type : classtype,
             classid : classid
-        }
+        };
 
         var id = document.getElementById("id");
 
@@ -60,10 +62,30 @@ function sendEdit() {
 function responseListener(item) {
     item.addEventListener('load', function() {
         if (item.status >= 200 && item.status < 400) {
-            console.log(JSON.parse(item.responseText));
+            var response = JSON.parse(item.responseText);
+            if (response.error) {
+                var p = document.createElement("p");
+                p.id = "error message";
+                p.textContent = response.error;
+                var form = document.getElementById("form");
+                form.appendChild(p);
+            } else {
+                // console.log(JSON.parse(item.responseText));
+                window.location.href = "/";
+            }
+
         } else {
             console.log("error in network request: " + item.statusText);
         }
-        window.location.href = "/";
+
     });
+}
+
+
+function removeOld(itemID) {
+    var item = document.getElementById(itemID);
+    if (item) {
+        var parent = item.parentNode;
+        parent.removeChild(item);
+    }
 }

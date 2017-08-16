@@ -39,17 +39,19 @@ app.post('/',function(req,res,next){
             'INNER JOIN teachers t ON t.id = c.tid ' +
             'INNER JOIN classrooms cr ON c.classid = cr.id ' +
             'LEFT JOIN student_class sc ON c.id = sc.cid ' +
-            'GROUP BY sc.cid ORDER BY day, time) as t1', req.body, res, next);
+            'GROUP BY c.id ORDER BY day, time) as t1', req.body, res, next);
         } else {
             filter("SELECT * FROM " + type, req.body, res, next);
         }
     } else if (req.body.showStudents) {
         mysql.pool.query('SELECT fname, lname, s.id from students s ' +
             'INNER JOIN student_class sc ON s.id = sc.sid ' +
-            'INNER JOIN classes c ON c.id =sc.cid WHERE c.id = ?', [req.body.id], function (err, rows, fields) {
+            'INNER JOIN classes c ON c.id = sc.cid WHERE sc.cid = ?', [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             } else {
                 var context = rows;
                 console.log(context);
@@ -66,7 +68,9 @@ app.post('/',function(req,res,next){
             [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             } else {
                 var context = rows;
                 console.log(context);
@@ -78,20 +82,25 @@ app.post('/',function(req,res,next){
         mysql.pool.query("INSERT INTO student_class SET ?", [req.body],
             function (err, result) {
                 if (err) {
+                    console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 }
                 res.send(result);
             });
     } else if (req.body.showClasses) {
         console.log("in show class backend");
-        mysql.pool.query('SELECT CONCAT(t.fname, " ", t.lname) as teacher, type, day, time, c.id from students s ' +
+        mysql.pool.query('SELECT t.fname, t.lname, type, day, time, c.id from students s ' +
             'INNER JOIN student_class sc ON s.id = sc.sid ' +
             'INNER JOIN classes c ON c.id =sc.cid ' +
             'INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
             [req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             } else {
                 var context = rows;
                 console.log(context);
@@ -102,14 +111,16 @@ app.post('/',function(req,res,next){
         mysql.pool.query('SELECT * FROM (SELECT COUNT(sid) as size, cr.capacity, c.day, c.time, c.type, t.fname, t.lname, c.id FROM classes c ' +
             'INNER JOIN teachers t ON t.id = c.tid ' +
             'INNER JOIN classrooms cr ON c.classid = cr.id ' +
-            'LEFT JOIN student_class sc ON sc.cid = c.id GROUP BY cid) as t1 ' +
+            'LEFT JOIN student_class sc ON sc.cid = c.id GROUP BY c.id) as t1 ' +
             'WHERE t1.id NOT IN ' +
             '(SELECT cl.id from classes cl INNER JOIN student_class sc ON cl.id = sc.cid ' +
             'INNER JOIN students s ON sc.sid = s.id WHERE s.id = ?) AND size < capacity;',
             [req.body.id], function (err, rows, fields) {
                 if (err) {
                     console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 } else {
                     var context = rows;
                     console.log(context);
@@ -119,6 +130,8 @@ app.post('/',function(req,res,next){
     } else if (req.body.removeItem) {
         mysql.pool.query('DELETE from student_class WHERE sid = ? AND cid = ?', [req.body.sid, req.body.cid], function(err, results) {
             if (err) {
+                console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
                 return;
             }
@@ -135,7 +148,9 @@ app.get('/students', function(req, res, next) {
         mysql.pool.query('SELECT * FROM students WHERE id = ?', [req.query.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
@@ -155,7 +170,10 @@ app.post('/students', function(req, res, next) {
         mysql.pool.query("UPDATE students SET ?  WHERE id=?", [req.body, id],
         function(err, result) {
             if(err){
+                console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             }
             res.send(result);
          });
@@ -163,7 +181,10 @@ app.post('/students', function(req, res, next) {
         mysql.pool.query("INSERT INTO students SET ?", [req.body],
             function (err, result) {
                 if (err) {
+                    console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 }
                 res.send(result);
             });
@@ -178,7 +199,9 @@ app.get('/teachers', function(req, res, next) {
         mysql.pool.query('SELECT * FROM teachers WHERE id = ?', [id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
@@ -198,7 +221,10 @@ app.post('/teachers', function(req, res, next) {
         mysql.pool.query("UPDATE teachers SET ?  WHERE id=?", [req.body, id],
             function(err, result) {
                 if(err){
+                    console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 }
                 res.send(result);
             });
@@ -206,7 +232,10 @@ app.post('/teachers', function(req, res, next) {
         mysql.pool.query("INSERT INTO teachers SET ?", [req.body],
             function (err, result) {
                 if (err) {
+                    console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 }
                 res.send(result);
             });
@@ -222,7 +251,9 @@ app.get('/classrooms', function(req, res, next) {
         mysql.pool.query('SELECT * FROM classrooms WHERE id = ?', [id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
@@ -242,7 +273,10 @@ app.post('/classrooms', function(req, res, next) {
         mysql.pool.query("UPDATE classrooms SET ?  WHERE id = ?", [req.body, id],
             function(err, result) {
                 if(err){
+                    console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 }
                 res.send(result);
             });
@@ -250,7 +284,10 @@ app.post('/classrooms', function(req, res, next) {
         mysql.pool.query("INSERT INTO classrooms SET ?", [req.body],
             function (err, result) {
                 if (err) {
+                    console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
+                    return;
                 }
                 res.send(result);
             });
@@ -266,12 +303,15 @@ app.get('/classes', function(req, res, next) {
     mysql.pool.query('SELECT * FROM teachers', function(err, rows, fields) {
         if (err) {
             console.log(err);
+            res.send(JSON.stringify(err));
             next(err);
+            return;
         } else {
             context.teacherList = rows;
             mysql.pool.query('SELECT * FROM classrooms', function(err, rows, fields) {
                 if (err) {
                     console.log(err);
+                    res.send(JSON.stringify(err));
                     next(err);
                     return;
                 } else {
@@ -280,6 +320,7 @@ app.get('/classes', function(req, res, next) {
                         mysql.pool.query('SELECT * FROM classes WHERE id = ?', [id], function (err, rows, fields) {
                             if (err) {
                                 console.log(err);
+                                res.send(JSON.stringify(err));
                                 next(err);
                                 return;
                             }
@@ -305,15 +346,31 @@ app.post('/classes', function(req, res, next) {
         mysql.pool.query("UPDATE classes SET ?  WHERE id=?", [req.body, id],
             function (err, result) {
                 if (err) {
-                    next(err);
+                    if (err.code == 'ER_DUP_ENTRY') {
+                        res.send({error: "The classroom is in use or the teacher is busy at that time."})
+                    } else {
+                        console.log(err);
+                        res.send(JSON.stringify(err));
+                        next(err);
+                        return;
+                    }
+
                 }
                 res.send(result);
             });
     } else {
         mysql.pool.query("INSERT INTO classes SET ?", [req.body],
             function (err, result) {
+
                 if (err) {
-                    next(err);
+                    if (err.code == 'ER_DUP_ENTRY') {
+                        res.send({error: "The classroom is in use or the teacher is busy at that time."});
+                    } else {
+                        console.log(err);
+                        res.send(JSON.stringify(err));
+                        next(err);
+                        return;
+                    }
                 }
                 res.send(result);
             });
@@ -324,14 +381,18 @@ app.post('/classes', function(req, res, next) {
 //This function sends the results of the full table to the client page.
 function getTable(tableName, res, next) {
     if (tableName === "classes") {
+        console.log('in make classes');
         mysql.pool.query('SELECT CONCAT(fname, " ", lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c ' +
             'INNER JOIN teachers t ON t.id = c.tid ' +
             'INNER JOIN classrooms cr ON c.classid = cr.id ' +
             'LEFT JOIN student_class sc ON c.id = sc.cid ' +
-            'GROUP BY sc.cid ORDER BY day, time',
+            'GROUP BY c.id ORDER BY day, time',
             [tableName], function(err, rows, fields){
             if(err){
+                console.log(err);
+                res.send(JSON.stringify(err));
                 next(err);
+                return;
             }
             results = JSON.stringify(rows);
             res.send(results);
@@ -339,8 +400,10 @@ function getTable(tableName, res, next) {
     } else {
         mysql.pool.query('SELECT * FROM ??', [tableName], function(err, rows, fields){
         if(err){
-             next(err);
-             return;
+            console.log(err);
+            res.send(JSON.stringify(err));
+            next(err);
+            return;
         }
         results = JSON.stringify(rows);
         res.send(results);
@@ -355,7 +418,10 @@ function deleteRow(req, res, next) {
     console.log(req);
     mysql.pool.query("DELETE FROM ?? WHERE id = ?", [req.dbtype, req.id], function(err, results) {
         if (err) {
+            console.log(err);
+            res.send(JSON.stringify(err));
             next(err);
+            return;
         }
         getTable(req.dbtype, res, next);
     });
@@ -395,7 +461,10 @@ function filter(baseQuery, list, res, next) {
 
     mysql.pool.query(query, searchItems, function(err, results) {
         if (err) {
+            console.log(err);
+            res.send(JSON.stringify(err));
             next(err);
+            return;
         }
         res.send(results);
     });

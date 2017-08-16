@@ -11,10 +11,16 @@ document.addEventListener('DOMContentLoaded', sendEdit);
 function sendEdit() {
     document.getElementById("submitted").addEventListener('click', function(event) {
         event.preventDefault();
+        removeOld("error message");
+
         var req = new XMLHttpRequest();
         var payload;
         if (document.getElementById("fname").value === "" || document.getElementById("lname") === "") {
-            console.log("Please fill out all fields");
+            var p = document.createElement("p");
+            p.id = "error message";
+            p.textContent = "Please fill out all fields";
+            var form = document.getElementById("form");
+            form.appendChild(p);
             return;
         }
 
@@ -51,4 +57,13 @@ function responseListener(item) {
         }
         window.location.href = "/";
     });
+}
+
+
+function removeOld(itemID) {
+    var item = document.getElementById(itemID);
+    if (item) {
+        var parent = item.parentNode;
+        parent.removeChild(item);
+    }
 }

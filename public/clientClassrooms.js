@@ -12,10 +12,15 @@ document.addEventListener('DOMContentLoaded', sendEdit);
 function sendEdit() {
     document.getElementById("submitted").addEventListener('click', function(event) {
         event.preventDefault();
+        removeOld("error message");
         var req = new XMLHttpRequest();
         var payload;
         if (document.getElementById("classname").value === "" || document.getElementById("capacity").value <= 0) {
-            console.log("Fill in all fields. Capacity must be greater than 0.");
+            var p = document.createElement("p");
+            p.id = "error message";
+            p.textContent = "Please fill out all fields. Capacity must be greater than 0.";
+            var form = document.getElementById("form");
+            form.appendChild(p);
             return;
         }
         payload = {
@@ -48,4 +53,12 @@ function responseListener(item) {
         }
         window.location.href = "/";
     });
+}
+
+function removeOld(itemID) {
+    var item = document.getElementById(itemID);
+    if (item) {
+        var parent = item.parentNode;
+        parent.removeChild(item);
+    }
 }

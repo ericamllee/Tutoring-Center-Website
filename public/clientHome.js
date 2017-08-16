@@ -39,6 +39,7 @@ document.getElementById("submitted").addEventListener('click', sendPost);
 
 function makeTable(tableName, response) {
     //make the table
+    console.log(response);
     var table = document.createElement("table");
     table.id = "table";
     table.style.border = "1px solid";
@@ -194,7 +195,7 @@ function showStudents(event) {
                 console.log(response);
                 var newCol = makeItem("td", document.getElementById("class" + id), "students" + id);
                 response.forEach(function (item) {
-                    var text = item.fname + " " + itemlname;
+                    var text = item.fname + " " + item.lname;
                     p = makeItem("p", newCol, item.id.toString() + id.toString(), text);
                     makeRemove("Remove student", p, item.id, id);
                 });
