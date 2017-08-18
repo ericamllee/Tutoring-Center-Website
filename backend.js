@@ -58,13 +58,13 @@ app.post('/',function(req,res,next){
             }
         });
     } else if (req.body.addStudent) {
-        mysql.pool.query('select id, CONCAT(fname, " ", lname) as NAME from ' +
-            '(select t1.id as id, t1.fname as fname, t1.lname as lname, t2.id as otherID from students t1 ' +
-            'LEFT JOIN ' +
-            '(SELECT s.id FROM students s ' +
-            'INNER JOIN student_class sc ON s.id = sc.sid ' +
-            'INNER JOIN classes c ON c.id = sc.cid WHERE c.id = ?) as t2 ON t1.id = t2.id) as t3 WHERE otherID IS NULL',
-            [req.body.id], function (err, rows, fields) {
+        mysql.pool.query('select id, CONCAT(fname, " ", lname) as NAME FROM students where id NOT IN ' +
+            '(select s.id from students s ' +
+            'INNER JOIN student_class sc ON sc.sid = s.id ' +
+            'INNER JOIN classes c ON c.id = sc.cid ' +
+            'WHERE day = (SELECT day from classes where id = ?) ' +
+            'AND time = (SELECT time FROM classes where id = ?))',
+            [req.body.id, req.body.id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 res.send(JSON.stringify(err));
@@ -103,7 +103,28 @@ app.post('/',function(req,res,next){
                 res.send(context);
             }
         });
-    } else if (req.body.addClasses) {
+    } else if (req.body.showSchedule) {
+        var query = 'SELECT t.fname, t.lname, type, day, time, c.id from classes c ' +
+            'INNER JOIN teachers t ON t.id = c.tid WHERE ';
+        if (req.body.type == "teachers") {
+            query += "tid = ?";
+        } else {
+            query += "classid = ?";
+        }
+        console.log(query);
+        mysql.pool.query(query,
+            [req.body.id], function (err, rows, fields) {
+                if (err) {
+                    console.log(err);
+                    res.send(JSON.stringify(err));
+                    next(err);
+                    return;
+                } else {
+                    console.log(rows);
+                    res.send(rows);
+                }
+            });
+    } if (req.body.addClasses) {
         mysql.pool.query('SELECT t3.fname, t3.lname, t3.type, t3.day, t3.time, t3.id FROM ' +
             '(SELECT * FROM ' +
             '(SELECT COUNT(sid) as size, cr.capacity, c.day, c.time, c.type, t.fname, t.lname, c.id FROM classes c ' +

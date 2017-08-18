@@ -71,6 +71,8 @@ function makeTable(tableName, response) {
         } else if (tableName == "students") {
             makeButton("Show Classes", showClasses, lastCol, object.id);
             makeButton("Add Class", addClasses, lastCol, object.id);
+        } else {
+            makeButton("Show Classes", showSchedule, lastCol, object.id);
         }
         table.appendChild(newRow);
     });
@@ -179,13 +181,12 @@ function addRow(event) {
 }
 
 function showStudents(event) {
-    var current = document.getElementById("students" + event.target.hiddenId);
+    var id = event.target.hiddenId;
+    var current = document.getElementById("students" + id);
     if (current) {
-        var parent = current.parentNode;
-        parent.removeChild(current);
+        removeOld("students" + event.target.hiddenId);
     } else {
         event.preventDefault();
-        var id = event.target.hiddenId;
         var req = new XMLHttpRequest();
         req.open('POST', '/', true);
         req.setRequestHeader('Content-Type', 'application/json');
@@ -211,13 +212,12 @@ function showStudents(event) {
 
 
 function showClasses(event) {
-    var current = document.getElementById("classes" + event.target.hiddenId);
+    var id = event.target.hiddenId;
+    var current = document.getElementById("classes" + id);
     if (current) {
-        var parent = current.parentNode;
-        parent.removeChild(current);
+        removeOld("classes" + event.target.hiddenId);
     } else {
         event.preventDefault();
-        var id = event.target.hiddenId;
         var req = new XMLHttpRequest();
         req.open('POST', '/', true);
         req.setRequestHeader('Content-Type', 'application/json');
@@ -234,6 +234,35 @@ function showClasses(event) {
             }
         });
         var toSend = {showClasses: "true", id: id};
+        req.send(JSON.stringify(toSend));
+    }
+}
+
+function showSchedule(event) {
+    var type = document.querySelector('input[name = "db"]:checked').value;
+    var id = event.target.hiddenId;
+    var current = document.getElementById("sched" + id);
+    if (current) {
+        removeOld("sched" + id);
+    } else {
+        event.preventDefault();
+        var id = event.target.hiddenId;
+        var req = new XMLHttpRequest();
+        req.open('POST', '/', true);
+        req.setRequestHeader('Content-Type', 'application/json');
+        req.addEventListener('load', function () {
+            if (req.status >= 200 && req.status < 400) {
+                var response = JSON.parse(req.responseText);
+                console.log(response);
+                var newCol = makeItem("td", document.getElementById("class" + id), "sched" + id);
+                response.forEach(function (item) {
+                    var p = makeItem("p", newCol, id.toString() + item.id.toString(), classToString(item));
+                });
+            } else {
+                console.log("Error in network request: " + req.statusText);
+            }
+        });
+        var toSend = {showSchedule: "true", id: id, type: type};
         req.send(JSON.stringify(toSend));
     }
 }
