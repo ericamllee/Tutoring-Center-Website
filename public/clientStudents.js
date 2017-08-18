@@ -51,11 +51,10 @@ function sendEdit() {
 function responseListener(item) {
     item.addEventListener('load', function() {
         if (item.status >= 200 && item.status < 400) {
-            console.log(JSON.parse(item.responseText));
+            window.location.href = "/";
         } else {
             console.log("error in network request: " + item.statusText);
         }
-        window.location.href = "/";
     });
 }
 

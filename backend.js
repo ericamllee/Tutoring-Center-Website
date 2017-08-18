@@ -111,7 +111,6 @@ app.post('/',function(req,res,next){
         } else {
             query += "classid = ?";
         }
-        console.log(query);
         mysql.pool.query(query,
             [req.body.id], function (err, rows, fields) {
                 if (err) {
@@ -120,7 +119,6 @@ app.post('/',function(req,res,next){
                     next(err);
                     return;
                 } else {
-                    console.log(rows);
                     res.send(rows);
                 }
             });

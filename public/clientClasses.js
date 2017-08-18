@@ -70,7 +70,6 @@ function responseListener(item) {
                 var form = document.getElementById("form");
                 form.appendChild(p);
             } else {
-                // console.log(JSON.parse(item.responseText));
                 window.location.href = "/";
             }
 

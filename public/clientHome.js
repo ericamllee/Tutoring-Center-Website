@@ -39,7 +39,6 @@ document.getElementById("submitted").addEventListener('click', sendPost);
 
 function makeTable(tableName, response) {
     //make the table
-    console.log(response);
     var table = document.createElement("table");
     table.id = "table";
     table.style.border = "1px solid";
@@ -193,7 +192,6 @@ function showStudents(event) {
         req.addEventListener('load', function () {
             if (req.status >= 200 && req.status < 400) {
                 var response = JSON.parse(req.responseText);
-                console.log(response);
                 var newCol = makeItem("td", document.getElementById("class" + id), "students" + id);
                 response.forEach(function (item) {
                     var text = item.fname + " " + item.lname;
@@ -205,7 +203,6 @@ function showStudents(event) {
             }
         });
         var toSend = {showStudents: "true", id: id};
-        console.log(toSend);
         req.send(JSON.stringify(toSend));
     }
 }
@@ -253,7 +250,6 @@ function showSchedule(event) {
         req.addEventListener('load', function () {
             if (req.status >= 200 && req.status < 400) {
                 var response = JSON.parse(req.responseText);
-                console.log(response);
                 var newCol = makeItem("td", document.getElementById("class" + id), "sched" + id);
                 response.forEach(function (item) {
                     var p = makeItem("p", newCol, id.toString() + item.id.toString(), classToString(item));
@@ -278,7 +274,6 @@ function makeRemove(text, parent, sid, cid) {
         req.setRequestHeader('Content-Type', 'application/json');
         req.addEventListener('load', sendPost);
         var toSend = {removeItem: "true", sid: sid, cid:cid};
-        console.log(toSend);
         req.send(JSON.stringify(toSend));
     });
     return button;
@@ -297,7 +292,6 @@ function addStudent(event) {
         parent.removeChild(current);
     }
 
-    console.log("in add students");
     event.preventDefault();
     var id = event.target.hiddenId;
     var req = new XMLHttpRequest();
@@ -306,7 +300,6 @@ function addStudent(event) {
     req.addEventListener('load', function () {
         if (req.status >= 200 && req.status < 400) {
             var response = JSON.parse(req.responseText);
-            console.log(response);
             var addCol = makeItem("td", document.getElementById("class" + id), "adding");
             var addStudent = makeItem("FORM", document.getElementById("adding"), "addStudent" + id);
 
@@ -337,7 +330,6 @@ function addStudent(event) {
         }
     });
     var toSend = {addStudent: "true", id: id};
-    console.log(toSend);
     req.send(JSON.stringify(toSend));
 }
 
@@ -352,7 +344,6 @@ function addClasses(event) {
     req.addEventListener('load', function () {
         if (req.status >= 200 && req.status < 400) {
             var response = JSON.parse(req.responseText);
-            console.log(response);
 
             if (response.length === 0) {
                 console.log("no classes to add");
@@ -388,7 +379,6 @@ function addClasses(event) {
         }
     });
     var toSend = {addClasses: "true", id: id};
-    console.log(toSend);
     req.send(JSON.stringify(toSend));
 }
 
@@ -447,6 +437,5 @@ function sendFilter(event) {
     headings[dbtype].forEach(function(heading) {
         toSend[heading] = document.getElementById("filter" + heading).value;
     });
-    console.log(toSend);
     req.send(JSON.stringify(toSend));
 }
