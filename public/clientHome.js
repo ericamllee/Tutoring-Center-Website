@@ -1,9 +1,12 @@
 // Erica Lee
-// CS 290
+// CS 340
 // Final Project
 // Front-end page for the home page.
+
 var headings = {students: ["fname", "lname", "grade"], teachers : ["fname", "lname"], classes: ["teacher", "type", "day", "time", "classroom", "capacity", "size"], classrooms: ["name", "capacity"]};
 
+
+//This generic function sends a post request to make a table.
 function sendPost(event) {
     event.preventDefault();
     var req = new XMLHttpRequest();
@@ -15,6 +18,8 @@ function sendPost(event) {
     req.send(JSON.stringify(toSend));
 }
 
+
+//This generic function adds a callback to an object. It then removes old information and replaces it with new information.
 function tableResponse(req, dbtype, bool) {
     req.addEventListener('load', function() {
         if (req.status >= 200 && req.status < 400) {
@@ -36,7 +41,7 @@ function tableResponse(req, dbtype, bool) {
 document.getElementById("submitted").addEventListener('click', sendPost);
 
 
-
+//This function makes the table for a table of tableName type.
 function makeTable(tableName, response) {
     //make the table
     var table = document.createElement("table");
@@ -146,7 +151,7 @@ function makeForm(parent, id, dbname) {
 
 /******
  * The function is called when the delete button is hit. It sends a post request to the home page,
- * indicating that a delete button has been hit, along with the id of the row.
+ * indicating that a delete button has been hit, along with the id of the row and the database name.
  *
  * @param event
  */
@@ -173,12 +178,17 @@ function editRow(event) {
     window.location.href = "/" + dbname + "?id=" + event.target.hiddenId;
 }
 
+
+//This function redirects the page to the add/edit pages.
 function addRow(event) {
     event.preventDefault();
     var dbname = event.target.name;
     window.location.href = "/" + dbname;
 }
 
+
+//this function makes a button to show students from the classes table. If the students are already showing, then the
+//function removes the box containing the names of the students, Otherwise, it finds the students and displays their names.
 function showStudents(event) {
     var id = event.target.hiddenId;
     var current = document.getElementById("students" + id);
@@ -208,6 +218,7 @@ function showStudents(event) {
 }
 
 
+//this function makes a button to either show the classes (if they're not visible) or take them away (if they're already visible).
 function showClasses(event) {
     var id = event.target.hiddenId;
     var current = document.getElementById("classes" + id);
@@ -235,6 +246,8 @@ function showClasses(event) {
     }
 }
 
+
+//This function shows the classes for teachers and classrooms.
 function showSchedule(event) {
     var type = document.querySelector('input[name = "db"]:checked').value;
     var id = event.target.hiddenId;
@@ -263,6 +276,8 @@ function showSchedule(event) {
     }
 }
 
+
+//This function makes the "remove" button that is attached to students and classes.
 function makeRemove(text, parent, sid, cid) {
     var button = document.createElement("BUTTON");
     var t = document.createTextNode(text);
@@ -279,12 +294,14 @@ function makeRemove(text, parent, sid, cid) {
     return button;
 }
 
+
+//This function takes a JSON object of class attributes and turns them into a string.
 function classToString(item) {
     return item.type + " class with " + item.fname + " " + item.lname + " on " + item.day + " at " + item.time;
 }
 
 
-
+//this function handles adding a student on the class table.
 function addStudent(event) {
     var current = document.getElementById("adding");
     if (current) {
@@ -334,6 +351,7 @@ function addStudent(event) {
 }
 
 
+//This function handles adding a class on the student table.
 function addClasses(event) {
     removeOld("adding");
     event.preventDefault();
@@ -382,6 +400,8 @@ function addClasses(event) {
     req.send(JSON.stringify(toSend));
 }
 
+
+//This function handles removing old items from the DOM.
 function removeOld(itemID) {
     var item = document.getElementById(itemID);
     if (item) {
@@ -390,6 +410,8 @@ function removeOld(itemID) {
     }
 }
 
+
+//This function makes the filter forms.
 function makeFilterForm(type) {
     removeOld("filterForm");
 
@@ -411,11 +433,10 @@ function makeFilterForm(type) {
 }
 
 
+//this function makes text boxes for the filter form.
 function makeTextBoxes(textArray, parent) {
     textArray.forEach(function(text) {
         var p = document.createElement("p");
-        // var label, textbox;
-        // label = document.createElement('label');
         p.appendChild(document.createTextNode(text + ": "));
         var textbox = document.createElement('input');
         textbox.id = "filter" + text;
@@ -425,13 +446,14 @@ function makeTextBoxes(textArray, parent) {
     });
 }
 
+
+//This function sends the filter information to the backend.
 function sendFilter(event) {
     event.preventDefault();
     var req = new XMLHttpRequest();
     req.open('POST', '/', true);
     req.setRequestHeader('Content-Type', 'application/json');
     var dbtype = document.querySelector('input[name = "db"]:checked').value;
-    // req.addEventListener('load', tableResponse);
     tableResponse(req, dbtype, false);
     var toSend = {filter: "true", dbtype: dbtype};
     headings[dbtype].forEach(function(heading) {

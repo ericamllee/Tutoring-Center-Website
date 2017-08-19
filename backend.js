@@ -1,5 +1,5 @@
 // Erica Lee
-// CS 290
+// CS 3400
 // Final Project
 // Node.js backend 
 
@@ -22,6 +22,19 @@ var numAttributes = {capacity : true, size : true, grade : true};
 app.get('/', function(req, res, next) {
     res.render('home');
 });
+
+
+//This generic function takes in the response and the callback to mysql and sends the results to res.
+function sendAll(res, err, rows, fields) {
+    if (err) {
+        console.log(err);
+        res.send(JSON.stringify(err));
+        next(err);
+        return;
+    } else {
+        res.send(rows);
+    }
+}
 
 
 //handle the different types of post requests sent to the home page.
@@ -47,16 +60,8 @@ app.post('/',function(req,res,next){
         mysql.pool.query('SELECT fname, lname, s.id from students s ' +
             'INNER JOIN student_class sc ON s.id = sc.sid ' +
             'INNER JOIN classes c ON c.id = sc.cid WHERE sc.cid = ?', [req.body.id], function (err, rows, fields) {
-            if (err) {
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            } else {
-                var context = rows;
-                res.send(context);
-            }
-        });
+            sendAll(res, err, rows, fields);
+            });
     } else if (req.body.addStudent) {
         mysql.pool.query('select id, CONCAT(fname, " ", lname) as NAME FROM students where id NOT IN ' +
             '(select s.id from students s ' +
@@ -65,27 +70,13 @@ app.post('/',function(req,res,next){
             'WHERE day = (SELECT day from classes where id = ?) ' +
             'AND time = (SELECT time FROM classes where id = ?))',
             [req.body.id, req.body.id], function (err, rows, fields) {
-            if (err) {
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            } else {
-                var context = rows;
-                res.send(context);
-            }
+            sendAll(res, err, rows, fields);
         });
     } else if (req.body.addStudentClass) {
         delete req.body.addStudentClass;
         mysql.pool.query("INSERT INTO student_class SET ?", [req.body],
             function (err, result) {
-                if (err) {
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                }
-                res.send(result);
+                sendAll(res, err, result);
             });
     } else if (req.body.showClasses) {
         mysql.pool.query('SELECT t.fname, t.lname, type, day, time, c.id from students s ' +
@@ -93,34 +84,19 @@ app.post('/',function(req,res,next){
             'INNER JOIN classes c ON c.id =sc.cid ' +
             'INNER JOIN teachers t ON t.id = c.tid WHERE s.id = ?',
             [req.body.id], function (err, rows, fields) {
-            if (err) {
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            } else {
-                var context = rows;
-                res.send(context);
-            }
+            sendAll(res, err, rows, fields);
         });
     } else if (req.body.showSchedule) {
         var query = 'SELECT t.fname, t.lname, type, day, time, c.id from classes c ' +
             'INNER JOIN teachers t ON t.id = c.tid WHERE ';
-        if (req.body.type == "teachers") {
+        if (req.body.type === "teachers") {
             query += "tid = ?";
         } else {
             query += "classid = ?";
         }
         mysql.pool.query(query,
             [req.body.id], function (err, rows, fields) {
-                if (err) {
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                } else {
-                    res.send(rows);
-                }
+                sendAll(res, err, rows, fields);
             });
     } if (req.body.addClasses) {
         mysql.pool.query('SELECT t3.fname, t3.lname, t3.type, t3.day, t3.time, t3.id FROM ' +
@@ -137,35 +113,81 @@ app.post('/',function(req,res,next){
             'INNER JOIN student_class sc ON sc.cid = c.id WHERE sc.sid = ?) as t4 ' +
             'ON t3.day = t4.day AND t3.time = t4.time WHERE t4.id IS NULL;',
             [req.body.id, req.body.id], function (err, rows, fields) {
-                if (err) {
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                } else {
-                    var context = rows;
-                    res.send(context);
-                }
+            sendAll(res, err, rows, fields);
             });
     } else if (req.body.removeItem) {
         mysql.pool.query('DELETE from student_class WHERE sid = ? AND cid = ?', [req.body.sid, req.body.cid], function(err, results) {
-            if (err) {
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            }
-            res.send(results);
+            sendAll(res, err, results);
         });
     }
 });
 
 
-app.get('/students', function(req, res, next) {
+//This function sends the results of the full table to the client page.
+function getTable(tableName, res, next) {
+    if (tableName === "classes") {
+        mysql.pool.query('SELECT CONCAT(fname, " ", lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c ' +
+            'INNER JOIN teachers t ON t.id = c.tid ' +
+            'INNER JOIN classrooms cr ON c.classid = cr.id ' +
+            'LEFT JOIN student_class sc ON c.id = sc.cid ' +
+            'GROUP BY c.id ORDER BY day, time',
+            [tableName], function(err, rows, fields){
+                sendAll(res, err, rows, fields);
+            });
+    } else {
+        mysql.pool.query('SELECT * FROM ??', [tableName], function(err, rows, fields){
+            sendAll(res, err, rows, fields);
+        });
+    }
+}
+
+
+//This function handles deleting a row.
+function deleteRow(req, res, next) {
+    mysql.pool.query("DELETE FROM ?? WHERE id = ?", [req.dbtype, req.id], function(err, results) {
+        if (err) {
+            console.log(err);
+            res.send(JSON.stringify(err));
+            next(err);
+            return;
+        }
+        getTable(req.dbtype, res, next);
+    });
+}
+
+
+//This function handles filtering a row. It attaches the appropriate conditions and sends the results.
+function filter(baseQuery, list, res, next) {
+    var searchItems = [];
+    var text = Object.keys(list).filter(function(key) {
+        return list[key] !== "";
+    }).map(function(goodKey) {
+        var itemText = goodKey + ((goodKey in numAttributes) ? " = ? " : " LIKE ?");
+        if (!(goodKey in numAttributes)) {
+            list[goodKey] = "%" + list[goodKey] + "%";
+        }
+        searchItems.push(list[goodKey]);
+        return itemText;
+    }).join(" AND ");
+
+    if (text !== "") {
+        text = " WHERE " + text;
+    }
+
+    var query = baseQuery + text;
+
+    mysql.pool.query(query, searchItems, function(err, results) {
+        sendAll(res, err, results);
+    });
+}
+
+
+//This generic function handles making the add/edit page for table 'type'.
+function getAddEdit(req, res, next, type) {
     var context = {type : "Add"};
     var id = req.query.id;
     if (id) {
-        mysql.pool.query('SELECT * FROM students WHERE id = ?', [req.query.id], function (err, rows, fields) {
+        mysql.pool.query('SELECT * FROM ' + type + ' WHERE id = ?', [id], function (err, rows, fields) {
             if (err) {
                 console.log(err);
                 res.send(JSON.stringify(err));
@@ -174,149 +196,68 @@ app.get('/students', function(req, res, next) {
             } else {
                 context.row = rows[0];
                 context.type = "Edit";
-                res.render('students', context);
+                res.render(type, context);
             }
         });
     } else {
-        res.render('students', context);
+        res.render(type, context);
     }
+}
+
+
+//This generic function handles the response to the add/edit page of table 'type'.
+function postAddEdit(req, res, next, type) {
+    var id = req.body.hidden;
+
+    if (id) {
+        delete req.body.hidden;
+        mysql.pool.query("UPDATE " + type + " SET ?  WHERE id=?", [req.body, id],
+            function(err, result) {
+                sendAll(res, err, result);
+            });
+    } else {
+        mysql.pool.query("INSERT INTO " + type + " SET ?", [req.body],
+            function (err, result) {
+                sendAll(res, err, result);
+            });
+    }
+}
+
+
+app.get('/students', function(req, res, next) {
+    getAddEdit(req, res, next, "students");
 });
+
 
 //This function handles the post request for the student edit page.
 app.post('/students', function(req, res, next) {
-    if (req.body.hidden) {
-        var id = req.body.hidden;
-        delete req.body.hidden;
-        mysql.pool.query("UPDATE students SET ?  WHERE id=?", [req.body, id],
-        function(err, result) {
-            if(err){
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            }
-            res.send(result);
-         });
-    } else {
-        mysql.pool.query("INSERT INTO students SET ?", [req.body],
-            function (err, result) {
-                if (err) {
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                }
-                res.send(result);
-            });
-    }
+    postAddEdit(req, res, next, "students");
 });
 
 
 app.get('/teachers', function(req, res, next) {
-    var context = {type : "Add"};
-    var id = req.query.id;
-    if (id) {
-        mysql.pool.query('SELECT * FROM teachers WHERE id = ?', [id], function (err, rows, fields) {
-            if (err) {
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            } else {
-                context.row = rows[0];
-                context.type = "Edit";
-                res.render('teachers', context);
-            }
-        });
-    } else {
-        res.render('teachers', context);
-    }
+    getAddEdit(req, res, next, "teachers");
 });
+
 
 //This function handles the post request for the student edit page.
 app.post('/teachers', function(req, res, next) {
-    var id = req.body.hidden;
-    if (id) {
-        delete req.body.hidden;
-        mysql.pool.query("UPDATE teachers SET ?  WHERE id=?", [req.body, id],
-            function(err, result) {
-                if(err){
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                }
-                res.send(result);
-            });
-    } else {
-        mysql.pool.query("INSERT INTO teachers SET ?", [req.body],
-            function (err, result) {
-                if (err) {
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                }
-                res.send(result);
-            });
-    }
+    postAddEdit(req, res, next, "teachers");
 });
-
 
 
 app.get('/classrooms', function(req, res, next) {
-    var context = {type : "Add"};
-    var id = req.query.id;
-    if (id) {
-        mysql.pool.query('SELECT * FROM classrooms WHERE id = ?', [id], function (err, rows, fields) {
-            if (err) {
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            } else {
-                context.row = rows[0];
-                context.type = "Edit";
-                res.render('classrooms', context);
-            }
-        });
-    } else {
-        res.render('classrooms', context);
-    }
+    getAddEdit(req, res, next, "classrooms");
 });
+
 
 //This function handles the post request for the student edit page.
 app.post('/classrooms', function(req, res, next) {
-    var id = req.body.hidden;
-    if (id) {
-        delete req.body.hidden;
-        mysql.pool.query("UPDATE classrooms SET ?  WHERE id = ?", [req.body, id],
-            function(err, result) {
-                if(err){
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                }
-                res.send(result);
-            });
-    } else {
-        mysql.pool.query("INSERT INTO classrooms SET ?", [req.body],
-            function (err, result) {
-                if (err) {
-                    console.log(err);
-                    res.send(JSON.stringify(err));
-                    next(err);
-                    return;
-                }
-                res.send(result);
-            });
-    }
+    postAddEdit(req, res, next, "classrooms");
 });
 
 
-
-//This function renders the teachers edit page upon receiving an edit request.
+//This function renders the classroom page upon receiving an add or edit request.
 app.get('/classes', function(req, res, next) {
     var context = {type : "Add"};
     var id = req.query.id;
@@ -398,93 +339,18 @@ app.post('/classes', function(req, res, next) {
 });
 
 
-//This function sends the results of the full table to the client page.
-function getTable(tableName, res, next) {
-    if (tableName === "classes") {
-        mysql.pool.query('SELECT CONCAT(fname, " ", lname) as teacher, c.id, type, day, time, capacity, cr.name as classroom, COUNT(sid) as size FROM `classes` c ' +
-            'INNER JOIN teachers t ON t.id = c.tid ' +
-            'INNER JOIN classrooms cr ON c.classid = cr.id ' +
-            'LEFT JOIN student_class sc ON c.id = sc.cid ' +
-            'GROUP BY c.id ORDER BY day, time',
-            [tableName], function(err, rows, fields){
-            if(err){
-                console.log(err);
-                res.send(JSON.stringify(err));
-                next(err);
-                return;
-            }
-            results = JSON.stringify(rows);
-            res.send(results);
-        });
-    } else {
-        mysql.pool.query('SELECT * FROM ??', [tableName], function(err, rows, fields){
-        if(err){
-            console.log(err);
-            res.send(JSON.stringify(err));
-            next(err);
-            return;
-        }
-        results = JSON.stringify(rows);
-        res.send(results);
-        });
-    }
-}
-
-
-//This function handles deleting a row.
-function deleteRow(req, res, next) {
-    mysql.pool.query("DELETE FROM ?? WHERE id = ?", [req.dbtype, req.id], function(err, results) {
-        if (err) {
-            console.log(err);
-            res.send(JSON.stringify(err));
-            next(err);
-            return;
-        }
-        getTable(req.dbtype, res, next);
-    });
-}
-
-
-function filter(baseQuery, list, res, next) {
-    var searchItems = [];
-    var text = Object.keys(list).filter(function(key) {
-        return list[key] !== "";
-    }).map(function(goodKey) {
-        var itemText = goodKey + ((goodKey in numAttributes) ? " = ? " : " LIKE ?");
-        if (!(goodKey in numAttributes)) {
-            list[goodKey] = "%" + list[goodKey] + "%";
-        }
-        searchItems.push(list[goodKey]);
-        return itemText;
-    }).join(" AND ");
-
-    if (text !== "") {
-        text = " WHERE " + text;
-    }
-
-    var query = baseQuery + text;
-
-    mysql.pool.query(query, searchItems, function(err, results) {
-        if (err) {
-            console.log(err);
-            res.send(JSON.stringify(err));
-            next(err);
-            return;
-        }
-        res.send(results);
-    });
-}
-
 app.use(function(req,res){
     res.status(404);
     res.render('404');
 });
+
 
 app.use(function(err, req, res, next){
     console.error(err.stack);
     res.status(500);
     res.render('500');
 });
+
 
 app.listen(app.get('port'), function(){
     console.log('Express started on http://localhost:' + app.get('port') + '; press Ctrl-C to terminate.');
